@@ -72,6 +72,16 @@ class BearerTokenAuthenticatorService(
   }
 
   /**
+   * Initializes an authenticator.
+   *
+   * @param authenticator The authenticator instance.
+   * @return The serialized authenticator value.
+   */
+  override def init(authenticator: BearerTokenAuthenticator): Future[BearerTokenAuthenticator] = {
+    dao.add(authenticator)
+  }
+
+  /**
    * Updates the authenticator with the new last used date in the backing store.
    *
    * We needn't embed the token in the response here because the token itself will not be changed.
@@ -93,18 +103,15 @@ class BearerTokenAuthenticatorService(
    * out after a certain time if it wasn't used. So to mark an authenticator as used it will be
    * touched on every request to a Silhouette action. If an authenticator should not be touched
    * because of the fact that sliding window expiration is disabled, then it should be returned
-   * on the right, otherwise it should be returned on the left. An untouched authenticator needn't
+   * on the left, otherwise it should be returned on the right. An untouched authenticator needn't
    * be updated later by the [[update]] method.
    *
    * @param authenticator The authenticator to touch.
    * @return The touched authenticator on the left or the untouched authenticator on the right.
    */
   override def touch(authenticator: BearerTokenAuthenticator): Either[BearerTokenAuthenticator, BearerTokenAuthenticator] = {
-    if (authenticator.idleTimeout.isDefined) {
-      Left(authenticator.copy(lastUsedDateTime = clock.now))
-    } else {
-      Right(authenticator)
-    }
+    if (authenticator.idleTimeout.isDefined) Right(authenticator.copy(lastUsedDateTime = clock.now))
+    else Left(authenticator)
   }
 
   /**
