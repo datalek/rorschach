@@ -33,6 +33,13 @@ class BearerTokenAuthenticatorSpec extends Specification with Common with NoTime
     }
   }
 
+  "the create method" should {
+    "return authenticator after store it on database" >> new Context {
+      (dao.add _).expects(authenticator).returns(Future.successful(authenticator))
+      val result = await(authenticatorService.init(authenticator))
+    }
+  }
+
   "the update method" should {
     "return authenticator untouched and store it" >> new Context {
       (dao.update _).expects(authenticator).returns(Future.successful(authenticator))
@@ -48,13 +55,13 @@ class BearerTokenAuthenticatorSpec extends Specification with Common with NoTime
     "return authenticator touched" >> new Context {
       val now = DateTime.now
       (clock.now _).expects().returns(now)
-      authenticatorService.touch(authenticator) should beLeft[BearerTokenAuthenticator].like {
+      authenticatorService.touch(authenticator) should beRight[BearerTokenAuthenticator].like {
         case a => a.lastUsedDateTime must be equalTo now
       }
     }
     "return authenticator untouched" >> new Context {
       val withoutIdleTimeout = authenticator.copy(idleTimeout = None)
-      authenticatorService.touch(withoutIdleTimeout) should beRight
+      authenticatorService.touch(withoutIdleTimeout) should beLeft
     }
   }
 

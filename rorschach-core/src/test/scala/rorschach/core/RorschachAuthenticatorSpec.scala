@@ -45,11 +45,10 @@ class RorschachAuthenticatorSpec extends Specification with Common {
       retrieveMock.expects(auth).returns(Future.successful(Some(auth)))
       (identityServiceMock.retrieve _).expects(auth.loginInfo).returns(Future.successful(Some(user)))
       (authenticatorServiceMock.touch _).expects(auth).returns(Left(auth))
-      (authenticatorServiceMock.renew _).expects(auth).returns(Future.successful(auth))
       await(authenticator.authenticate(auth)) should beRight(result)
     }
 
-    "return a right with user when the authenticator is valid - with dao update if authenticator is untouched" >> new Context {
+    "return a right with user when the authenticator is valid - with dao update if authenticator is touched" >> new Context {
       val user = DummyUser("my.username")
       val auth = DummyAuthenticator(loginInfo = LoginInfo("provider", "test@email.com"), isValid = true)
       val result = (auth, user)
@@ -57,7 +56,6 @@ class RorschachAuthenticatorSpec extends Specification with Common {
       (identityServiceMock.retrieve _).expects(auth.loginInfo).returns(Future.successful(Some(user)))
       (authenticatorServiceMock.touch _).expects(auth).returns(Right(auth))
       (authenticatorServiceMock.update _).expects(auth).returns(Future.successful(auth))
-      (authenticatorServiceMock.renew _).expects(auth).returns(Future.successful(auth))
       await(authenticator.authenticate(auth)) should beRight(result)
     }
   }

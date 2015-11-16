@@ -6,7 +6,7 @@ class DefaultCryptoSpec extends Specification {
 
   val textToEncrypt = "&%%ASDIIJPOppokasojdpOWIJD"
   val key = "hello encryption!!!"//"this is my key"
-  val crypto = new DefaultCrypto()
+  val crypto = Crypto
 
   "Crypto" should {
     "encode and decode a string without error" >> {
