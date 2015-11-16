@@ -11,6 +11,7 @@ import spray.routing.Directives._
 import spray.routing.{RequestContext, Directive0}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class JWTAuthentication[I <: Identity](
   val idGenerator: IdGenerator,
@@ -22,14 +23,11 @@ class JWTAuthentication[I <: Identity](
   protected val authenticationService = new JWTAuthenticatorService(idGenerator, settings, dao)
 
   def retrieve(ctx: RequestContext): Future[Option[JWTAuthenticator]] = {
-    val a = ctx.request.headers.find(httpHeader => httpHeader.name == settings.headerName).map(_.value).flatMap { jwtString =>
+    ctx.request.headers.find(httpHeader => httpHeader.name == settings.headerName).map(_.value).flatMap { jwtString =>
       JWTAuthenticator.unserialize(jwtString)(settings).toOption
-    }
-    Future.successful(a)
+    }.map(a => dao.fold(Future.successful(Option(a)))(_.find(a.id))).getOrElse(Future.successful(None))
   }
 
   def serialize(authenticator: JWTAuthenticator): String = JWTAuthenticator.serialize(authenticator)(settings)
   def embed(value: String): Directive0 = respondWithHeader(HttpHeaders.RawHeader(settings.headerName, value))
-
-  def test = setCookie(spray.http.HttpCookie("userName", content = "paul"))
 }
