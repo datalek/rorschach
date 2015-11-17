@@ -101,13 +101,13 @@ class BearerTokenAuthenticatorService(
    *
    * An authenticator can use sliding window expiration. This means that the authenticator times
    * out after a certain time if it wasn't used. So to mark an authenticator as used it will be
-   * touched on every request to a Silhouette action. If an authenticator should not be touched
+   * touched on every request. If an authenticator should not be touched
    * because of the fact that sliding window expiration is disabled, then it should be returned
    * on the left, otherwise it should be returned on the right. An untouched authenticator needn't
    * be updated later by the [[update]] method.
    *
    * @param authenticator The authenticator to touch.
-   * @return The touched authenticator on the left or the untouched authenticator on the right.
+   * @return The touched authenticator on the right or the untouched authenticator on the left.
    */
   override def touch(authenticator: BearerTokenAuthenticator): Either[BearerTokenAuthenticator, BearerTokenAuthenticator] = {
     if (authenticator.idleTimeout.isDefined) Right(authenticator.copy(lastUsedDateTime = clock.now))

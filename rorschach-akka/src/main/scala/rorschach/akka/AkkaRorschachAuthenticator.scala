@@ -21,7 +21,7 @@ trait AkkaRorschachAuthenticator[A <: Authenticator, I <: Identity]
   def serialize(authenticator: A): A#Value
   def embed(value: A#Value): Directive0
   def unembed: Directive0 = pass
-  Credentials
+
   /**
    * @param ctx the context where retrieve information for authentication
    * @return an authentication

@@ -1,7 +1,7 @@
 package rorschach.exceptions
 
 /**
- * Indicates a misconfiguration of a Silhouette component.
+ * Indicates a misconfiguration problem.
  *
  * @param msg The exception message.
  * @param cause The exception cause.

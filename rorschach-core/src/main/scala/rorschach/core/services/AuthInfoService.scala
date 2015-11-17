@@ -6,7 +6,7 @@ import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 /**
- * A trait that provides the means to persist authentication information for the Silhouette module.
+ * A trait that provides the means to persist authentication information.
  *
  * If the application supports the concept of "merged identities", i.e., the same user being
  * able to authenticate through different providers, then make sure that the auth info for

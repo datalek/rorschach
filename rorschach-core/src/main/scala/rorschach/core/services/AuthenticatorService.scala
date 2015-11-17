@@ -1,7 +1,24 @@
+/**
+ * Original work: Silhouette (https://github.com/mohiva/play-silhouette)
+ * Modifications Copyright 2015 Mohiva Organisation (license at mohiva dot com)
+ *
+ * Derivative work: Rorschach (https://github.com/merle-/rorschach)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package rorschach.core.services
 
 import rorschach.core.{LoginInfo, Authenticator}
-
 import scala.concurrent.Future
 
 /**
@@ -32,30 +49,28 @@ trait AuthenticatorService[T <: Authenticator] {
    *
    * An authenticator can use sliding window expiration. This means that the authenticator times
    * out after a certain time if it wasn't used. So to mark an authenticator as used it will be
-   * touched on every request to a Silhouette action. If an authenticator should not be touched
+   * touched on every request. If an authenticator should not be touched
    * because of the fact that sliding window expiration is disabled, then it should be returned
    * on the left, otherwise it should be returned on the right. An untouched authenticator needn't
    * be updated later by the [[update]] method.
    *
    * @param authenticator The authenticator to touch.
-   * @return The touched authenticator on the left or the untouched authenticator on the right.
+   * @return The touched authenticator on the right or the untouched authenticator on the left.
    */
   def touch(authenticator: T): Either[T, T]
 
   /**
    * Updates a touched authenticator.
    *
-   * If the authenticator was updated, then the updated artifacts should be embedded into the response.
-   * This method gets called on every subsequent request if an identity accesses a Silhouette action,
-   * expect the authenticator was not touched.
+   * This method update an authenticator on the backing store.
    *
    * @param authenticator The authenticator to update.
-   * @return The original or a manipulated result.
+   * @return The updated authenticator.
    */
   def update(authenticator: T): Future[T]
 
   /**
-   * Renews the expiration of an authenticator without embedding it into the result.
+   * Renews the expiration of an authenticator.
    *
    * Based on the implementation, the renew method should revoke the given authenticator first, before
    * creating a new one. If the authenticator was updated, then the updated artifacts should be returned.
@@ -66,7 +81,7 @@ trait AuthenticatorService[T <: Authenticator] {
   def renew(authenticator: T): Future[T]
 
   /**
-   * Manipulates the response and removes authenticator specific artifacts before sending it to the client.
+   * Removes authenticator specific artifacts before sending it to the client.
    *
    * @param authenticator The authenticator instance.
    * @return The manipulated result.
