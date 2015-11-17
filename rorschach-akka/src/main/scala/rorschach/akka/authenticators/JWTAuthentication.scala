@@ -1,26 +1,27 @@
-package rorschach.spray.authenticators
+package rorschach.akka.authenticators
 
+import akka.http.scaladsl.model.DateTime
+import akka.http.scaladsl.server._
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.model.headers._
+import rorschach.akka.AkkaRorschachAuthenticator
 import rorschach.core.Identity
+import rorschach.core.authenticators.{JWTAuthenticator, JWTAuthenticatorService, JWTAuthenticatorSettings}
 import rorschach.core.daos.AuthenticatorDao
 import rorschach.core.services.IdentityService
-import rorschach.spray.SprayRorschachAuthenticator
-import rorschach.core.authenticators.{JWTAuthenticatorSettings, JWTAuthenticatorService, JWTAuthenticator}
 import rorschach.util.IdGenerator
-import spray.http.HttpHeaders
-import spray.routing.Directives._
-import spray.routing.{RequestContext, Directive0}
-
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 class JWTAuthentication[I <: Identity](
   val idGenerator: IdGenerator,
   val settings: JWTAuthenticatorSettings,
   val identityService: IdentityService[I],
   val dao: Option[AuthenticatorDao[JWTAuthenticator]]
-  )(implicit val ec: ExecutionContext) extends SprayRorschachAuthenticator[JWTAuthenticator, I] {
+  )(implicit val ec: ExecutionContext) extends AkkaRorschachAuthenticator[JWTAuthenticator, I] {
 
   protected val authenticationService = new JWTAuthenticatorService(idGenerator, settings, dao)
+  // TODO: set correct values for HttpChallenge
+  override val Challenge: HttpChallenge = JWTAuthentication.Challenge
 
   def retrieve(ctx: RequestContext): Future[Option[JWTAuthenticator]] = {
     ctx.request.headers.find(httpHeader => httpHeader.name == settings.headerName).map(_.value).flatMap { jwtString =>
@@ -29,5 +30,10 @@ class JWTAuthentication[I <: Identity](
   }
 
   def serialize(authenticator: JWTAuthenticator): String = JWTAuthenticator.serialize(authenticator)(settings)
-  def embed(value: String): Directive0 = respondWithHeader(HttpHeaders.RawHeader(settings.headerName, value))
+  def embed(value: String): Directive0 = respondWithHeader(RawHeader(settings.headerName, value))
+}
+
+
+object JWTAuthentication {
+  val Challenge: HttpChallenge = HttpChallenge(scheme = "", realm = "")
 }

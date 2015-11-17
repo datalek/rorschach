@@ -45,8 +45,7 @@ case class CookieAuthenticator(
   lastUsedDateTime: DateTime,
   expirationDateTime: DateTime,
   idleTimeout: Option[FiniteDuration],
-  cookieMaxAge: Option[FiniteDuration],
-  fingerprint: Option[String])
+  cookieMaxAge: Option[FiniteDuration])
   extends StorableAuthenticator with ExpirableAuthenticator {
 
   /**
@@ -139,12 +138,22 @@ class CookieAuthenticatorService(
           lastUsedDateTime = now,
           expirationDateTime = now.plusMillis(settings.authenticatorExpiry.toMillis.toInt),
           idleTimeout = settings.authenticatorIdleTimeout,
-          cookieMaxAge = settings.cookieMaxAge,
-          fingerprint = if (settings.useFingerprinting) /*Some(fingerprintGenerator.generate)*/None else None
+          cookieMaxAge = settings.cookieMaxAge
+          //if (settings.useFingerprinting) Some(fingerprintGenerator.generate) else None
         )
       }.recover {
         case e => throw new AuthenticatorCreationException("Error", e)
       }
+  }
+
+  /**
+   * Initializes an authenticator.
+   *
+   * @param authenticator The authenticator instance.
+   * @return The serialized authenticator value.
+   */
+  override def init(authenticator: CookieAuthenticator): Future[CookieAuthenticator] = {
+    dao.fold(Future.successful(authenticator))(_.add(authenticator))
   }
 
   /**
@@ -170,15 +179,15 @@ class CookieAuthenticatorService(
    * out after a certain time if it wasn't used. So to mark an authenticator as used it will be
    * touched on every request to a Silhouette action. If an authenticator should not be touched
    * because of the fact that sliding window expiration is disabled, then it should be returned
-   * on the right, otherwise it should be returned on the left. An untouched authenticator needn't
+   * on the left, otherwise it should be returned on the right. An untouched authenticator needn't
    * be updated later by the [[update]] method.
    *
    * @param authenticator The authenticator to touch.
    * @return The touched authenticator on the left or the untouched authenticator on the right.
    */
   override def touch(authenticator: CookieAuthenticator): Either[CookieAuthenticator, CookieAuthenticator] = {
-    if (authenticator.idleTimeout.isDefined) Left(authenticator.copy(lastUsedDateTime = clock.now))
-    else Right(authenticator)
+    if (authenticator.idleTimeout.isDefined) Right(authenticator.copy(lastUsedDateTime = clock.now))
+    else Left(authenticator)
   }
 
   /**
@@ -209,24 +218,6 @@ class CookieAuthenticatorService(
       case e => throw new AuthenticatorRenewalException("Could not reniew authenticator", e)
     }
   }
-}
-
-/**
- * The companion object of the authenticator service.
- */
-object CookieAuthenticatorService {
-
-  /**
-   * The ID of the authenticator.
-   */
-  val ID = "cookie-authenticator"
-
-  /**
-   * The error messages.
-   */
-  val JsonParseError = "[Silhouette][%s] Cannot parse Json: %s"
-  val InvalidJsonFormat = "[Silhouette][%s] Invalid Json format: %s"
-  val InvalidFingerprint = "[Silhouette][%s] Fingerprint %s doesn't match authenticator: %s"
 }
 
 /**

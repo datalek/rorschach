@@ -2,7 +2,7 @@ package rorschach.util
 
 import org.specs2.mutable.Specification
 
-class CryptoSpec extends Specification {
+class DefaultCryptoSpec extends Specification {
 
   val textToEncrypt = "&%%ASDIIJPOppokasojdpOWIJD"
   val key = "hello encryption!!!"//"this is my key"

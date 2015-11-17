@@ -23,7 +23,7 @@ trait SprayRorschachAuthenticator[A <: Authenticator, I <: Identity]
   extends RorschachAuthenticator[A, I] with ContextAuthenticator[(A, I)] {
   type Context = RequestContext
 
-  def create(loginInfo: LoginInfo): Future[A] = authenticationService.create(loginInfo)
+  def create(loginInfo: LoginInfo): Future[A] = authenticationService.create(loginInfo).flatMap(authenticationService.init)
   def remove(authenticator: A): Future[A] = authenticationService.remove(authenticator)
 
   def serialize(authenticator: A): A#Value

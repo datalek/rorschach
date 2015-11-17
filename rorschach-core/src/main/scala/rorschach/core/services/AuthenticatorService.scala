@@ -20,13 +20,21 @@ trait AuthenticatorService[T <: Authenticator] {
   def create(loginInfo: LoginInfo): Future[T]
 
   /**
+   * Initializes an authenticator.
+   *
+   * @param authenticator The authenticator instance.
+   * @return The serialized authenticator value.
+   */
+  def init(authenticator: T): Future[T]
+
+  /**
    * Touches an authenticator.
    *
    * An authenticator can use sliding window expiration. This means that the authenticator times
    * out after a certain time if it wasn't used. So to mark an authenticator as used it will be
    * touched on every request to a Silhouette action. If an authenticator should not be touched
    * because of the fact that sliding window expiration is disabled, then it should be returned
-   * on the right, otherwise it should be returned on the left. An untouched authenticator needn't
+   * on the left, otherwise it should be returned on the right. An untouched authenticator needn't
    * be updated later by the [[update]] method.
    *
    * @param authenticator The authenticator to touch.

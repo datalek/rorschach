@@ -11,8 +11,8 @@ val sprayVersion = "1.3.3"
 /* the root project, contains startup stuff */
 lazy val root = (project in file("."))
 	.settings(sprayRorschachSettings: _*)
-	.aggregate(rorschachCore, rorschachSpray)
-	.dependsOn(rorschachCore, rorschachSpray)
+	.aggregate(rorschachCore, rorschachSpray, rorschachAkka)
+	.dependsOn(rorschachCore, rorschachSpray, rorschachAkka)
 
 /* Core project, contain main behaviour */
 lazy val rorschachCore = Project(id = "rorschach-core", base = file("rorschach-core"))
@@ -26,7 +26,6 @@ lazy val rorschachCore = Project(id = "rorschach-core", base = file("rorschach-c
 			"org.mindrot" 				%  "jbcrypt" 									% "0.3m",
 		  "ch.qos.logback"  		%  "logback-classic" 					% "1.1.3",
 		  "com.typesafe.play" 	%% "play-json" 								% "2.3.9",
-//		  "org.specs2" 					%% "specs2-core" 							% "2.3.11" 	% "test",
 			"org.scalamock" 			%% "scalamock-specs2-support" % "3.2" 		% "test"
 		)
 	)
@@ -35,10 +34,20 @@ lazy val rorschachCore = Project(id = "rorschach-core", base = file("rorschach-c
 lazy val rorschachSpray = Project(id = "rorschach-spray", base = file("rorschach-spray"))
 	.settings(sprayRorschachSettings: _*)
 	.settings(
-		resolvers += "Atlassian Releases" at "https://maven.atlassian.com/public/",
-		resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
 		libraryDependencies ++= Seq(
-		    "io.spray" 							%%  "spray-routing" 	% sprayVersion,
-		    "io.spray"            	%%  "spray-testkit" 	% sprayVersion 	% "test"
+		    "io.spray" 							%%  "spray-routing" 						% sprayVersion 	% "provided",
+		    "io.spray"            	%%  "spray-testkit" 						% sprayVersion 	% "test",
+				"org.scalamock" 				%% 	"scalamock-specs2-support" 	% "3.2" 				% "test"
+		)
+	).dependsOn(rorschachCore)
+
+/* this project provide authentication functionality into akka-http */
+lazy val rorschachAkka = Project(id = "rorschach-akka", base = file("rorschach-akka"))
+	.settings(sprayRorschachSettings: _*)
+	.settings(
+		libraryDependencies ++= Seq(
+			"com.typesafe.akka" 		%% 	"akka-http-experimental" 					% "2.0-M1" 	% "provided",
+			"com.typesafe.akka" 		%% 	"akka-http-testkit-experimental" 	% "2.0-M1" 	% "test",
+			"org.scalamock" 				%% 	"scalamock-scalatest-support" 		% "3.2" 		% "test"
 		)
 	).dependsOn(rorschachCore)

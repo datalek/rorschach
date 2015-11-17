@@ -10,7 +10,7 @@ import rorschach.core.services.AuthenticatorService
 import rorschach.core.daos.AuthenticatorDao
 import rorschach.core.{StorableAuthenticator, ExpirableAuthenticator, LoginInfo}
 import rorschach.exceptions._
-import rorschach.util.{Clock, IdGenerator, Base64}
+import rorschach.util.{Crypto, Clock, IdGenerator, Base64}
 import play.api.libs.json._
 
 import scala.collection.JavaConversions._
@@ -32,7 +32,7 @@ import scala.util._
 case class JWTAuthenticatorSettings(
   headerName: String = "X-Auth-Token",
   issuerClaim: String = "rorschach",
-  encryptSubject: Boolean = true,
+  encryptKey: Option[String] = None,
   authenticatorIdleTimeout: Option[FiniteDuration] = None,
   authenticatorExpiry: FiniteDuration = 12.hours,
   sharedSecret: String)
@@ -77,12 +77,12 @@ object JWTAuthenticator {
   val ReservedClaims = Seq("jti", "iss", "sub", "iat", "exp", "nbf")
 
   def serialize(authenticator: JWTAuthenticator)(settings: JWTAuthenticatorSettings): String = {
+    val subject = serializeLoginInfo(authenticator.loginInfo).toString
     val jwtBuilder = new JsonSmartJwtJsonBuilder()
       .jwtId(authenticator.id)
       .issuer(settings.issuerClaim)
       .notBefore(authenticator.lastUsedDateTime.toDate.getTime / 1000)
-      // TODO: add AES encryption
-      .subject(if (settings.encryptSubject) Base64.encode(serializeLoginInfo(authenticator.loginInfo)) else Base64.encode(serializeLoginInfo(authenticator.loginInfo)))
+      .subject(settings.encryptKey.fold(Base64.encode(subject))(Crypto.encrypt(_, subject)))
       .issuedAt(authenticator.lastUsedDateTime.toDate.getTime / 1000)
       .expirationTime(authenticator.expirationDateTime.toDate.getTime / 1000)
     val containReserved = authenticator.customClaims.exists(_.exists(s => ReservedClaims.contains(s._1)))
@@ -100,7 +100,7 @@ object JWTAuthenticator {
       if (!jwsObject.verify(verifier)) throw new IllegalArgumentException("Fraudulent JWT token: " + str)
       JWTClaimsSet.parse(jwsObject.getPayload.toJSONObject)
     }.flatMap { c =>
-      val subject = if (settings.encryptSubject) Base64.decode(c.getSubject) else Base64.decode(c.getSubject)
+      val subject = settings.encryptKey.fold(Base64.decode(c.getSubject))(Crypto.decrypt(_, c.getSubject))
       unserializeLoginInfo(subject).map { loginInfo =>
         val filteredClaims = c.getAllClaims.toMap.filterNot { case (k, v) => ReservedClaims.contains(k) || v == null }
         val customClaims = this.unserializeCustomClaims(filteredClaims)
@@ -190,6 +190,16 @@ class JWTAuthenticatorService(
   }
 
   /**
+   * Initializes an authenticator.
+   *
+   * @param authenticator The authenticator instance.
+   * @return The serialized authenticator value.
+   */
+  override def init(authenticator: JWTAuthenticator): Future[JWTAuthenticator] = {
+    dao.fold(Future.successful(authenticator))(_.add(authenticator))
+  }
+
+  /**
    * Updates a touched authenticator.
    *
    * If the authenticator was updated, then the updated artifacts should be embedded into the response.
@@ -212,15 +222,15 @@ class JWTAuthenticatorService(
    * out after a certain time if it wasn't used. So to mark an authenticator as used it will be
    * touched on every request to a Silhouette action. If an authenticator should not be touched
    * because of the fact that sliding window expiration is disabled, then it should be returned
-   * on the right, otherwise it should be returned on the left. An untouched authenticator needn't
+   * on the left, otherwise it should be returned on the right. An untouched authenticator needn't
    * be updated later by the [[update]] method.
    *
    * @param authenticator The authenticator to touch.
    * @return The touched authenticator on the left or the untouched authenticator on the right.
    */
   override def touch(authenticator: JWTAuthenticator): scala.Either[JWTAuthenticator, JWTAuthenticator] = {
-    if (authenticator.idleTimeout.isDefined) Left(authenticator.copy(lastUsedDateTime = clock.now))
-    else Right(authenticator)
+    if (authenticator.idleTimeout.isDefined) Right(authenticator.copy(lastUsedDateTime = clock.now))
+    else Left(authenticator)
   }
 
   /**

@@ -25,10 +25,10 @@ trait RorschachAuthenticator[A <: Authenticator, I <: Identity] {
       case Some(a) if a.isValid => identityService.retrieve(a.loginInfo).flatMap {
         // the identity is found so return it after update the authenticator (left is not touched, right is touched)
         case Some(i) => authenticationService.touch(a) match {
-          case Left(_) => authenticationService.renew(a).map{ Right(_, i)}
-          case Right(_) => authenticationService.update(a).flatMap(authenticationService.renew(_).map(a => Right(a, i)))
+          case Left(touched) => Future.successful(Right(touched, i))
+          case Right(touched) => authenticationService.update(touched).map(Right(_, i))
         }
-        // the identity wasn't found so discart authenticator and fail with rejection
+        // the identity wasn't found so discard authenticator and fail with rejection
         case None => authenticationService.remove(a).map(a => Left(new IdentityNotFoundException("Identity not found")))
       }
       // An invalid authenticator was found so we needn't retrieve the identity, discard authenticator

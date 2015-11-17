@@ -1,6 +1,5 @@
 package rorschach.core.authenticators
 
-
 import org.joda.time.DateTime
 import org.scalamock.specs2.MockContext
 import org.specs2.matcher.JsonMatchers
@@ -36,6 +35,16 @@ class JWTAuthenticatorSpec extends Specification with JsonMatchers with Common w
     }
   }
 
+  "the create method" should {
+    "return authenticator after store it on database" >> new Context {
+      (dao.add _).expects(authenticator).returns(Future.successful(authenticator))
+      val result = await(authenticatorService.init(authenticator))
+    }
+    "return authenticator without store it on database" >> new Context {
+      val result = await(authenticatorServiceWithoutDao.init(authenticator))
+    }
+  }
+
   "the update method" should {
     "return authenticator untouched and store it" >> new Context {
       (dao.update _).expects(authenticator).returns(Future.successful(authenticator))
@@ -54,13 +63,13 @@ class JWTAuthenticatorSpec extends Specification with JsonMatchers with Common w
     "return authenticator touched" >> new Context {
       val now = DateTime.now
       (clock.now _).expects().returns(now)
-      authenticatorService.touch(authenticator) should beLeft[JWTAuthenticator].like {
+      authenticatorService.touch(authenticator) should beRight[JWTAuthenticator].like {
         case a => a.lastUsedDateTime must be equalTo now
       }
     }
     "return authenticator untouched" >> new Context {
       val withoutIdleTimeout = authenticator.copy(idleTimeout = None)
-      authenticatorService.touch(withoutIdleTimeout) should beRight
+      authenticatorService.touch(withoutIdleTimeout) should beLeft
     }
   }
 
@@ -110,15 +119,15 @@ class JWTAuthenticatorSpec extends Specification with JsonMatchers with Common w
     }
 
     "return a JWT with an encrypted subject" in new Context {
-      val s = settings.copy(encryptSubject = true)
+      val s = settings.copy(encryptKey = Some("the key secret!"))
       val jwt = serialize(authenticator)(s)
       val json = Json.parse(Base64.decode(jwt.split('.').apply(1)))
       val sub = Json.parse(Crypto.decrypt("", (json \ "sub").as[String])).as[LoginInfo]
       sub must be equalTo authenticator.loginInfo
-    }.pendingUntilFixed("implementation of Crypto")
+    }//.pendingUntilFixed("implementation of Crypto")
 
     "return a JWT with an unencrypted subject" in new Context {
-      val s = settings.copy(encryptSubject = false)
+      val s = settings.copy(encryptKey = None)
       val jwt = serialize(authenticator)(settings)
       val json = Base64.decode(jwt.split('.')(1))
       json must /("sub" -> Base64.encode(Json.toJson(authenticator.loginInfo)))
@@ -175,32 +184,33 @@ class JWTAuthenticatorSpec extends Specification with JsonMatchers with Common w
     }
 
     "throw an AuthenticatorException if encrypted token gets serialized unencrypted" in new Context {
-      val s0 = settings.copy(encryptSubject = true)
+      val s0 = settings.copy(encryptKey = Some("amazing string"))
       val jwt = serialize(authenticator)(s0)
-      val s1 = settings.copy(encryptSubject = false)
+      val s1 = settings.copy(encryptKey = None)
       unserialize(jwt)(s1) must beFailedTry.withThrowable[AuthenticatorException]
-    }.pendingUntilFixed("implementation of Crypto")
+    }
 
     "unserialize a JWT with an encrypted subject" in new Context {
-      val s = settings.copy(encryptSubject = true)
+      val s = settings.copy(encryptKey = Some("amazing string"))
+      val jwt = serialize(authenticator)(s)
+      unserialize(jwt)(s) must beSuccessfulTry.withValue(authenticator.copy(
+        expirationDateTime = authenticator.expirationDateTime.withMillisOfSecond(0),
+        lastUsedDateTime = authenticator.lastUsedDateTime.withMillisOfSecond(0),
+        idleTimeout = s.authenticatorIdleTimeout))
+    }
+
+    "unserialize a JWT without an encrypted subject" in new Context {
+      val s = settings.copy(encryptKey = None)
       val jwt = serialize(authenticator)(s)
       unserialize(jwt)(settings) must beSuccessfulTry.withValue(authenticator.copy(
         expirationDateTime = authenticator.expirationDateTime.withMillisOfSecond(0),
-        lastUsedDateTime = authenticator.lastUsedDateTime.withMillisOfSecond(0)
-      ))
-    }.pendingUntilFixed("implementation of Crypto")
-
-    "unserialize a JWT with an encrypted subject" in new Context {
-      val s = settings.copy(encryptSubject = false)
-      val jwt = serialize(authenticator)(s)
-      unserialize(jwt)(settings) must beSuccessfulTry.withValue(authenticator.copy(
-        expirationDateTime = authenticator.expirationDateTime.withMillisOfSecond(0),
-        lastUsedDateTime = authenticator.lastUsedDateTime.withMillisOfSecond(0)
-      ))
-    }.pendingUntilFixed("implementation of Crypto")
+        lastUsedDateTime = authenticator.lastUsedDateTime.withMillisOfSecond(0),
+        idleTimeout = s.authenticatorIdleTimeout)
+      )
+    }
 
     "unserialize a JWT with arbitrary claims" in new Context {
-      val s = settings.copy(encryptSubject = false)
+      val s = settings.copy(encryptKey = None)
       val jwt = serialize(authenticator.copy(customClaims = Some(customClaims)))(settings)
       unserialize(jwt)(settings) must beSuccessfulTry.like {
         case a => a.customClaims must beSome(customClaims)

@@ -4,17 +4,23 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import javax.crypto.Cipher
 import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
+import com.typesafe.config.ConfigFactory
 
-object Crypto {
+trait Crypto {
+  def encrypt(key: String, value: String): String
+  def decrypt(key: String, value: String): String
+}
 
-  protected val algorithm = "AES"
-  protected val transformation = "AES/CTR/NoPadding"
-  // TODO: Add this to configuration
-  private val SALT: String = "jMhKlOuJnM34G6NHkqo9V010GhLAqOpF0BePojHgh1HgNg8^72k"
+object Crypto extends DefaultCrypto with Crypto
+
+class DefaultCrypto (
+  algorithm: String = "AES",
+  transformation: String = "AES/CTR/NoPadding",
+  salt: Option[String] = None) extends Crypto {
 
   private def secretKeyToSpec(key: String): SecretKeySpec = {
     val messageDigest: MessageDigest = MessageDigest.getInstance("SHA-256")
-    val keyBytes: Array[Byte] = messageDigest.digest((SALT + key).getBytes("UTF-8"))
+    val keyBytes: Array[Byte] = messageDigest.digest((salt + key).getBytes("UTF-8"))
     // max allowed length in bits / (8 bits = 1 byte)
     val maxAllowedKeyLength = Cipher.getMaxAllowedKeyLength(algorithm) / 8
     val raw = messageDigest.digest().slice(0, maxAllowedKeyLength)
