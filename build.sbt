@@ -4,8 +4,7 @@ lazy val sprayRorschachSettings = Seq(
   scalaVersion := "2.11.6",
   crossPaths := false,
   resolvers += Resolver.jcenterRepo
-
-)
+) ++ PublishSettings.publish
 
 val sprayVersion = "1.3.3"
 val akkaVersion = "2.0-M1"
@@ -13,7 +12,7 @@ val akkaVersion = "2.0-M1"
 /* the root project, contains startup stuff */
 lazy val root = (project in file("."))
   .settings(sprayRorschachSettings: _*)
-  .settings(Seq(publishArtifact := false))
+  .settings(Seq(publish := {}, publishArtifact := false))
   .aggregate(rorschachCore, rorschachSpray, rorschachAkka)
 
 /* core project, contains main behaviour */
