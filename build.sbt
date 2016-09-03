@@ -15,7 +15,6 @@ lazy val root = (project in file("."))
   .settings(sprayRorschachSettings: _*)
   .settings(Seq(publishArtifact := false))
   .aggregate(rorschachCore, rorschachSpray, rorschachAkka)
-  .dependsOn(rorschachCore, rorschachSpray, rorschachAkka)
 
 /* core project, contains main behaviour */
 lazy val rorschachCore = Project(id = "rorschach-core", base = file("rorschach-core"))
