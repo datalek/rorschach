@@ -5,7 +5,7 @@ scala:
 jdk:
   - oraclejdk8
 script:
-  - scripts/ci-build
+  - scripts/build-ci
 after_success:
   - scripts/coveralls
 after_success:
