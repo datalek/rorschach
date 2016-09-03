@@ -1,8 +1,8 @@
 lazy val sprayRorschachSettings = Seq(
-  organization := "merle",
+  organization := "com.github.datalek",
   version := "0.0.1-SNAPSHOT",
   scalaVersion := "2.11.6",
-  crossPaths := false,
+  crossPaths := true,
   resolvers += Resolver.jcenterRepo
 ) ++ PublishSettings.publish
 

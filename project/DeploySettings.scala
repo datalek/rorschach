@@ -24,6 +24,7 @@ object PublishSettings {
     credentials := {if (isSnapshot.value) List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_)) else Nil}
   )
   val publish = snapshot ++ bintray.BintrayPlugin.bintrayPublishSettings ++ Seq(
+    bintray.BintrayKeys.bintrayPackage := "rorschach",
     pomExtra := pom,
     publishArtifact in Test := false,
     homepage := Some(url("https://github.com/datalek/rorschach")),
