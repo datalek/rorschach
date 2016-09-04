@@ -18,12 +18,11 @@ object PublishSettings {
   }
 
   private val snapshot = Seq(
-    publishTo := {if(isSnapshot.value) Some("snapshots" at "http://oss.jfrog.org/artifactory/oss-snapshot-local") else None},
-    //bintray.BintrayKeys.bintrayReleaseOnPublish := {if(isSnapshot.value) false else true},
+    publishTo := {if(isSnapshot.value) Some("snapshots" at "http://oss.jfrog.org/artifactory/oss-snapshot-local") else publishTo.value},
     // Only setting the credentials file if it exists (#52)
-    credentials := {if (isSnapshot.value) List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_)) else Nil}
+    credentials := {if (isSnapshot.value) List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_)) else credentials.value}
   )
-  val publish = snapshot ++ bintray.BintrayPlugin.bintrayPublishSettings ++ Seq(
+  val publish = bintray.BintrayPlugin.bintrayPublishSettings ++ snapshot ++ Seq(
     bintray.BintrayKeys.bintrayPackage := "rorschach",
     pomExtra := pom,
     publishArtifact in Test := false,
