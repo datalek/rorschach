@@ -7,7 +7,7 @@ lazy val sprayRorschachSettings = Seq(
 ) ++ PublishSettings.publish
 
 val sprayVersion = "1.3.3"
-val akkaVersion = "2.0-M1"
+val akkaVersion = "2.4.9"
 
 /* the root project, contains startup stuff */
 lazy val root = (project in file("."))
@@ -47,8 +47,8 @@ lazy val rorschachAkka = Project(id = "rorschach-akka", base = file("rorschach-a
   .settings(sprayRorschachSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "com.typesafe.akka"   %%  "akka-http-experimental"          %   akkaVersion   % "provided",
-      "com.typesafe.akka"   %%  "akka-http-testkit-experimental"  %   akkaVersion   % "test",
-      "org.scalamock"       %%  "scalamock-scalatest-support"     %   "3.2"         % "test"
+      "com.typesafe.akka"   %%  "akka-http-experimental"        %   akkaVersion   % "provided",
+      "com.typesafe.akka"   %%  "akka-http-testkit"             %   akkaVersion   % "test",
+      "org.scalamock"       %%  "scalamock-scalatest-support"   %   "3.2"         % "test"
     )
   ).dependsOn(rorschachCore)

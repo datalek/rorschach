@@ -5,6 +5,7 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.AuthenticationFailedRejection._
+import akka.http.scaladsl.settings.RoutingSettings
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import org.joda.time.DateTime
 import org.scalamock.scalatest.MockFactory
