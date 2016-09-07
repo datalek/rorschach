@@ -8,6 +8,7 @@ lazy val sprayRorschachSettings = Seq(
 
 val sprayVersion = "1.3.3"
 val akkaVersion = "2.4.9"
+val playJsonVersion = "2.5.5"
 
 /* the root project, contains startup stuff */
 lazy val root = (project in file("."))
@@ -26,7 +27,7 @@ lazy val rorschachCore = Project(id = "rorschach-core", base = file("rorschach-c
       "com.atlassian.jwt"   %  "jwt-api"                  % "1.2.4",
       "org.mindrot"         %  "jbcrypt"                  % "0.3m",
       "ch.qos.logback"      %  "logback-classic"          % "1.1.3",
-      "com.typesafe.play"   %% "play-json"                % "2.3.9",
+      "com.typesafe.play"   %% "play-json"                % playJsonVersion,
       "org.scalamock"       %% "scalamock-specs2-support" % "3.2"     % "test"
     )
   )
