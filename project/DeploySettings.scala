@@ -17,6 +17,8 @@ object PublishSettings {
     </developers>
   }
 
+  val skipPublish = Seq(Keys.publish := {}, publishArtifact := false)
+
   private val snapshot = Seq(
     publishTo := {if(isSnapshot.value) Some("snapshots" at "http://oss.jfrog.org/artifactory/oss-snapshot-local") else publishTo.value},
     bintray.BintrayKeys.bintrayReleaseOnPublish := !isSnapshot.value,
