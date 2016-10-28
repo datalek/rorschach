@@ -172,47 +172,47 @@ class JWTAuthenticatorSpec extends Specification with JsonMatchers with Common w
     }
   }
 
-  "The `unserialize` method of the authenticator" should {
+  "The `deserialize` method of the authenticator" should {
     "throw an AuthenticatorException if the given token can't be parsed" in new Context {
       val jwt = "invalid"
-      unserialize(jwt)(settings) must beFailedTry.withThrowable[AuthenticatorException]
+      deserialize(jwt)(settings) must beFailedTry.withThrowable[AuthenticatorException]
     }
 
     "throw an AuthenticatorException if the given token couldn't be verified" in new Context {
       val jwt = serialize(authenticator)(settings) + "-wrong-sig"
-      unserialize(jwt)(settings) must beFailedTry.withThrowable[AuthenticatorException]
+      deserialize(jwt)(settings) must beFailedTry.withThrowable[AuthenticatorException]
     }
 
     "throw an AuthenticatorException if encrypted token gets serialized unencrypted" in new Context {
       val s0 = settings.copy(encryptKey = Some("amazing string"))
       val jwt = serialize(authenticator)(s0)
       val s1 = settings.copy(encryptKey = None)
-      unserialize(jwt)(s1) must beFailedTry.withThrowable[AuthenticatorException]
+      deserialize(jwt)(s1) must beFailedTry.withThrowable[AuthenticatorException]
     }
 
-    "unserialize a JWT with an encrypted subject" in new Context {
+    "deserialize a JWT with an encrypted subject" in new Context {
       val s = settings.copy(encryptKey = Some("amazing string"))
       val jwt = serialize(authenticator)(s)
-      unserialize(jwt)(s) must beSuccessfulTry.withValue(authenticator.copy(
+      deserialize(jwt)(s) must beSuccessfulTry.withValue(authenticator.copy(
         expirationDateTime = authenticator.expirationDateTime.withMillisOfSecond(0),
         lastUsedDateTime = authenticator.lastUsedDateTime.withMillisOfSecond(0),
         idleTimeout = s.authenticatorIdleTimeout))
     }
 
-    "unserialize a JWT without an encrypted subject" in new Context {
+    "deserialize a JWT without an encrypted subject" in new Context {
       val s = settings.copy(encryptKey = None)
       val jwt = serialize(authenticator)(s)
-      unserialize(jwt)(settings) must beSuccessfulTry.withValue(authenticator.copy(
+      deserialize(jwt)(settings) must beSuccessfulTry.withValue(authenticator.copy(
         expirationDateTime = authenticator.expirationDateTime.withMillisOfSecond(0),
         lastUsedDateTime = authenticator.lastUsedDateTime.withMillisOfSecond(0),
         idleTimeout = s.authenticatorIdleTimeout)
       )
     }
 
-    "unserialize a JWT with arbitrary claims" in new Context {
+    "deserialize a JWT with arbitrary claims" in new Context {
       val s = settings.copy(encryptKey = None)
       val jwt = serialize(authenticator.copy(customClaims = Some(customClaims)))(settings)
-      unserialize(jwt)(settings) must beSuccessfulTry.like {
+      deserialize(jwt)(settings) must beSuccessfulTry.like {
         case a => a.customClaims must beSome(customClaims)
       }
     }
@@ -220,6 +220,30 @@ class JWTAuthenticatorSpec extends Specification with JsonMatchers with Common w
     "throw an AuthenticatorException if an unexpected value was found in the arbitrary claims" in new Context {
       val claims = Map("null" -> JsNull)
       serialize(authenticator.copy(customClaims = Some(claims)))(settings) must throwA[AuthenticatorException]
+    }
+
+    "the serialize method" should {
+      "serialize authenticator wihtout error" >> new Context {
+        await(authenticatorService.serialize(authenticator)) must be equalTo serialize(authenticator)(settings)
+      }
+      "throw an AuthenticatorException if the given token couldn't be serialized" in new Context {
+        val claims = Map("jti" -> "reserved")
+        await(authenticatorService.serialize(authenticator.copy(customClaims = Some(claims)))) must throwA[AuthenticatorException]
+      }
+    }
+
+    "the deserialize method" should {
+      "return the token deserialized" >> new Context {
+        val value = serialize(authenticator)(settings)
+        await(authenticatorService.deserialize(value)) must be equalTo authenticator.copy(
+          expirationDateTime = authenticator.expirationDateTime.withMillisOfSecond(0),
+          lastUsedDateTime = authenticator.lastUsedDateTime.withMillisOfSecond(0),
+          idleTimeout = settings.authenticatorIdleTimeout)
+      }
+      "throw AuthenticatorException if no authentication was found" >> new Context {
+        val jwt = "invalid"
+        await(authenticatorService.deserialize(jwt)) must throwA[AuthenticatorException]
+      }
     }
   }
 

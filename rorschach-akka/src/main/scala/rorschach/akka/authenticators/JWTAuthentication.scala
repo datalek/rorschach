@@ -25,7 +25,7 @@ class JWTAuthentication[I <: Identity](
 
   def retrieve(ctx: RequestContext): Future[Option[JWTAuthenticator]] = {
     ctx.request.headers.find(httpHeader => httpHeader.name == settings.headerName).map(_.value).flatMap { jwtString =>
-      JWTAuthenticator.unserialize(jwtString)(settings).toOption
+      JWTAuthenticator.deserialize(jwtString)(settings).toOption
     }.map(a => dao.fold(Future.successful(Option(a)))(_.find(a.id))).getOrElse(Future.successful(None))
   }
 

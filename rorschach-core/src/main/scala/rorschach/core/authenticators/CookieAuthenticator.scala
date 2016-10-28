@@ -83,7 +83,7 @@ object CookieAuthenticator {
    * @param settings The authenticator settings.
    * @return Some authenticator on success, otherwise None.
    */
-  def unserialize(str: String)(settings: CookieAuthenticatorSettings): Try[CookieAuthenticator] = {
+  def deserialize(str: String)(settings: CookieAuthenticatorSettings): Try[CookieAuthenticator] = {
     if (settings.encryptAuthenticator) buildAuthenticator(Base64.decode(str)/*Crypto.decryptAES(str)*/)
     else buildAuthenticator(Base64.decode(str))
   }
@@ -216,6 +216,29 @@ class CookieAuthenticatorService(
       create(authenticator.loginInfo)
     }.recover {
       case e => throw new AuthenticatorRenewalException("Could not reniew authenticator", e)
+    }
+  }
+
+  /**
+    * Serialize authentication to allow to embed it for transport
+    *
+    * @param authenticator The authentication to serialize
+    * @return The value of authentication serialized
+    */
+  override def serialize(authenticator: CookieAuthenticator): Future[String] = {
+    Future.successful(CookieAuthenticator.serialize(authenticator)(settings))
+  }
+
+  /**
+    * Deserialize authentication, this can involve in a read on store
+    *
+    * @param value The value of authentication serialized
+    * @return The authenticator
+    */
+  override def deserialize(value: String): Future[CookieAuthenticator] = {
+    CookieAuthenticator.deserialize(value)(settings) match {
+      case Success(v) => Future.successful(v)
+      case Failure(t) => Future.failed(t)
     }
   }
 }

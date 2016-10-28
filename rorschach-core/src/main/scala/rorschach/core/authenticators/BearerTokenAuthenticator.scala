@@ -3,11 +3,11 @@ package rorschach.core.authenticators
 import org.joda.time.DateTime
 import rorschach.core.daos.AuthenticatorDao
 import rorschach.core.services._
-import rorschach.core.{ExpirableAuthenticator, StorableAuthenticator, LoginInfo}
-import rorschach.exceptions.{AuthenticatorRenewalException, AuthenticatorDiscardingException, AuthenticatorUpdateException, AuthenticatorCreationException}
+import rorschach.core.{ExpirableAuthenticator, LoginInfo, StorableAuthenticator}
+import rorschach.exceptions._
 import rorschach.util.{Clock, IdGenerator}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 /**
@@ -144,6 +144,27 @@ class BearerTokenAuthenticatorService(
     }.recover {
       case e => throw new AuthenticatorRenewalException("Could not reniew authenticator", e)
     }
+  }
+
+  /**
+    * Serialize authentication to allow to embed it for transport
+    *
+    * @param authenticator The authentication to serialize
+    * @return The value of authentication serialized
+    */
+  override def serialize(authenticator: BearerTokenAuthenticator): Future[String] = {
+    Future.successful(authenticator.id)
+  }
+
+  /**
+    * Deserialize authentication, this can involve in a read on store
+    *
+    * @param value The value of authentication serialized
+    * @return The authenticator
+    */
+  override def deserialize(value: String): Future[BearerTokenAuthenticator] = {
+    lazy val errorMsg = s"Cannot deserialize the token, in this case can't find token with id: $value"
+    dao.find(value).map(_.getOrElse(throw new AuthenticatorException(errorMsg)))
   }
 }
 

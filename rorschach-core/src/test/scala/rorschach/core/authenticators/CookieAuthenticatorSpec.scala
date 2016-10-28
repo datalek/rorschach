@@ -109,27 +109,44 @@ class CookieAuthenticatorSpec extends Specification with Common with NoTimeConve
     }
   }
 
-  "The `unserialize` method of the authenticator" should {
+  "The `deserialize` method of the authenticator" should {
     "throw an AuthenticatorException if the given value can't be parsed as Json" in new Context {
       val value = "invalid"
-      unserialize(value)(settings) must beFailedTry.withThrowable[AuthenticatorException]
+      deserialize(value)(settings) must beFailedTry.withThrowable[AuthenticatorException]
     }
     "throw an AuthenticatorException if the given value is in the wrong Json format" in new Context {
       val value = Base64.encode("{\"a\": \"test\"}")
-      unserialize(value)(settings) must beFailedTry.withThrowable[AuthenticatorException]
+      deserialize(value)(settings) must beFailedTry.withThrowable[AuthenticatorException]
     }
   }
 
-  "The `serialize/unserialize` method of the authenticator" should {
+  "The `serialize/deserialize` method of the authenticator" should {
     "handle an encrypted authenticator" in new Context {
       val s = settings.copy(encryptAuthenticator = true)
       val value = serialize(authenticator)(s)
-      unserialize(value)(s) must beSuccessfulTry.withValue(authenticator)
+      deserialize(value)(s) must beSuccessfulTry.withValue(authenticator)
     }
     "handle an unencrypted authenticator" in new Context {
       val s = settings.copy(encryptAuthenticator = false)
       val value = serialize(authenticator)(s)
-      unserialize(value)(s) must beSuccessfulTry.withValue(authenticator)
+      deserialize(value)(s) must beSuccessfulTry.withValue(authenticator)
+    }
+  }
+
+  "the serialize method" should {
+    "serialize authenticator without error" >> new Context {
+      await(authenticatorService.serialize(authenticator)) must be equalTo serialize(authenticator)(settings)
+    }
+  }
+
+  "the deserialize method" should {
+    "return the token deserialized" >> new Context {
+      val value = serialize(authenticator)(settings)
+      await(authenticatorService.deserialize(value)) must be equalTo authenticator
+    }
+    "throw AuthenticatorException if no authentication was found" >> new Context {
+      val value = Base64.encode("{\"a\": \"test\"}")
+      await(authenticatorService.deserialize(value)) must throwA[AuthenticatorException]
     }
   }
 
