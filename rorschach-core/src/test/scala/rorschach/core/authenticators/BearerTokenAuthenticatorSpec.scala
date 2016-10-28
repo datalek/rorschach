@@ -90,6 +90,27 @@ class BearerTokenAuthenticatorSpec extends Specification with Common with NoTime
       (dao.remove _).expects(authenticator.id).returns(Future.failed(new Exception("explosion during store action!")))
       await(authenticatorService.renew(authenticator)) should throwA[AuthenticatorRenewalException]
     }
+
+    "the serialize method" should {
+      "serialize as id simple token" >> new Context {
+        await(authenticatorService.serialize(authenticator)) must be equalTo authenticator.id
+      }
+    }
+
+    "the deserialize method" should {
+      "return the token deserialized" >> new Context {
+        (dao.find _).expects(authenticator.id).returns(Future.successful(Option(authenticator)))
+        await(authenticatorService.deserialize(authenticator.id)) must be equalTo authenticator
+      }
+      "throw AuthenticatorException if no authentication was found" >> new Context {
+        (dao.find _).expects(authenticator.id).returns(Future.successful(None))
+        await(authenticatorService.deserialize(authenticator.id)) must throwA[AuthenticatorException]
+      }
+      "throw Exception if dao return an exception" >> new Context {
+        (dao.find _).expects(authenticator.id).returns(Future.failed(new Exception("Error message")))
+        await(authenticatorService.deserialize(authenticator.id)) must throwA[Exception]
+      }
+    }
   }
 
   trait Context extends MockContext {

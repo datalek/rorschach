@@ -25,7 +25,7 @@ class CookieAuthentication[I <: Identity](
 
   def retrieve(ctx: RequestContext): Future[Option[CookieAuthenticator]] = {
     ctx.request.cookies.find(httpCookie => httpCookie.name == settings.cookieName).map(_.value).flatMap { serialized =>
-      CookieAuthenticator.unserialize(serialized)(settings).map { authenticator =>
+      CookieAuthenticator.deserialize(serialized)(settings).map { authenticator =>
         dao.find(authenticator.id)
       }.toOption
     }.getOrElse(Future.successful(None))
