@@ -162,9 +162,8 @@ class BearerTokenAuthenticatorService(
     * @param value The value of authentication serialized
     * @return The authenticator
     */
-  override def deserialize(value: String): Future[BearerTokenAuthenticator] = {
-    lazy val errorMsg = s"Cannot deserialize the token, in this case can't find token with id: $value"
-    dao.find(value).map(_.getOrElse(throw new AuthenticatorException(errorMsg)))
+  override def deserialize(value: String): Future[Option[BearerTokenAuthenticator]] = {
+    dao.find(value)
   }
 }
 

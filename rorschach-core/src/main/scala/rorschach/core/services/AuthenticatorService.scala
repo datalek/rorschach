@@ -102,5 +102,5 @@ trait AuthenticatorService[T <: Authenticator] {
     * @param value The value of authentication serialized
     * @return The authenticator
     */
-  def deserialize(value: T#Value): Future[T]
+  def deserialize(value: T#Value): Future[Option[T]]
 }

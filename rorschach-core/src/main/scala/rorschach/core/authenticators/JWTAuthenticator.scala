@@ -277,9 +277,9 @@ class JWTAuthenticatorService(
     * @param value The value of authentication serialized
     * @return The authenticator
     */
-  override def deserialize(value: String): Future[JWTAuthenticator] = {
+  override def deserialize(value: String): Future[Option[JWTAuthenticator]] = {
     JWTAuthenticator.deserialize(value)(settings) match {
-      case Success(v) => Future.successful(v)
+      case Success(v) => dao.fold(Future.successful(Option(v)))(_.find(v.id))
       case Failure(t) => Future.failed(t)
     }
   }
