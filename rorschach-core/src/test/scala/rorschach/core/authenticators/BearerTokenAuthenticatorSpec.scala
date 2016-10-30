@@ -100,11 +100,11 @@ class BearerTokenAuthenticatorSpec extends Specification with Common with NoTime
     "the deserialize method" should {
       "return the token deserialized" >> new Context {
         (dao.find _).expects(authenticator.id).returns(Future.successful(Option(authenticator)))
-        await(authenticatorService.deserialize(authenticator.id)) must be equalTo authenticator
+        await(authenticatorService.deserialize(authenticator.id)) must beSome(authenticator)
       }
-      "throw AuthenticatorException if no authentication was found" >> new Context {
+      "return None if the authenticator was not found in store" >> new Context {
         (dao.find _).expects(authenticator.id).returns(Future.successful(None))
-        await(authenticatorService.deserialize(authenticator.id)) must throwA[AuthenticatorException]
+        await(authenticatorService.deserialize(authenticator.id)) must beNone
       }
       "throw Exception if dao return an exception" >> new Context {
         (dao.find _).expects(authenticator.id).returns(Future.failed(new Exception("Error message")))

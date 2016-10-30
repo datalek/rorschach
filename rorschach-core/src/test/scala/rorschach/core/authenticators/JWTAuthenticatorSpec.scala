@@ -235,12 +235,22 @@ class JWTAuthenticatorSpec extends Specification with JsonMatchers with Common w
     "the deserialize method" should {
       "return the token deserialized" >> new Context {
         val value = serialize(authenticator)(settings)
-        await(authenticatorService.deserialize(value)) must be equalTo authenticator.copy(
+        await(authenticatorServiceWithoutDao.deserialize(value)) must beSome(authenticator.copy(
           expirationDateTime = authenticator.expirationDateTime.withMillisOfSecond(0),
           lastUsedDateTime = authenticator.lastUsedDateTime.withMillisOfSecond(0),
-          idleTimeout = settings.authenticatorIdleTimeout)
+          idleTimeout = settings.authenticatorIdleTimeout))
       }
-      "throw AuthenticatorException if no authentication was found" >> new Context {
+      "return the token deserialized with store lookup" >> new Context {
+        val value = serialize(authenticator)(settings)
+        (dao.find _).expects(authenticator.id).returns(Future.successful(Option(authenticator)))
+        await(authenticatorService.deserialize(value)) must beSome(authenticator)
+      }
+      "return None if the authenticator was not found in store" >> new Context {
+        val value = serialize(authenticator)(settings)
+        (dao.find _).expects(authenticator.id).returns(Future.successful(None))
+        await(authenticatorService.deserialize(value)) must beNone
+      }
+      "throw AuthenticatorException if autheticator is invalid" >> new Context {
         val jwt = "invalid"
         await(authenticatorService.deserialize(jwt)) must throwA[AuthenticatorException]
       }

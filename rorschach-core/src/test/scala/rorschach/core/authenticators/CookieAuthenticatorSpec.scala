@@ -142,7 +142,17 @@ class CookieAuthenticatorSpec extends Specification with Common with NoTimeConve
   "the deserialize method" should {
     "return the token deserialized" >> new Context {
       val value = serialize(authenticator)(settings)
-      await(authenticatorService.deserialize(value)) must be equalTo authenticator
+      await(authenticatorServiceWithoutDao.deserialize(value)) must beSome(authenticator)
+    }
+    "return the token deserialized with store lookup" >> new Context {
+      val value = serialize(authenticator)(settings)
+      (dao.find _).expects(authenticator.id).returns(Future.successful(Option(authenticator)))
+      await(authenticatorService.deserialize(value)) must beSome(authenticator)
+    }
+    "return None if the authenticator was not found in store" >> new Context {
+      val value = serialize(authenticator)(settings)
+      (dao.find _).expects(authenticator.id).returns(Future.successful(None))
+      await(authenticatorService.deserialize(value)) must beNone
     }
     "throw AuthenticatorException if no authentication was found" >> new Context {
       val value = Base64.encode("{\"a\": \"test\"}")
