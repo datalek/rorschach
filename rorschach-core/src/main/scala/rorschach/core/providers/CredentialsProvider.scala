@@ -1,11 +1,11 @@
 package rorschach.core.providers
 
-import rorschach.core.{LoginInfo, Credentials, Provider}
+import rorschach.core.{ LoginInfo, Credentials, Provider }
 import rorschach.core.services.AuthInfoService
-import rorschach.exceptions.{IdentityNotFoundException, InvalidPasswordException, ConfigurationException}
-import rorschach.util.{PasswordInfo, PasswordHasher}
+import rorschach.exceptions.{ IdentityNotFoundException, InvalidPasswordException, ConfigurationException }
+import rorschach.util.{ PasswordInfo, PasswordHasher }
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ Future, ExecutionContext }
 import CredentialsProvider._
 
 /**
@@ -22,11 +22,12 @@ import CredentialsProvider._
  * @param passwordHasherList List of password hasher supported by the application.
  * @param executionContext The execution context to handle the asynchronous operations.
  */
-class CredentialsProvider (
+class CredentialsProvider(
   authInfoService: AuthInfoService,
   passwordHasher: PasswordHasher,
-  passwordHasherList: Seq[PasswordHasher])(implicit val executionContext: ExecutionContext)
-  extends Provider /*with ExecutionContextProvider*/ {
+  passwordHasherList: Seq[PasswordHasher]
+)(implicit val executionContext: ExecutionContext)
+    extends Provider /*with ExecutionContextProvider*/ {
 
   /**
    * Gets the provider ID.
@@ -85,9 +86,9 @@ object CredentialsProvider {
   /**
    * The error messages.
    */
-  val UnknownCredentials = "[Rorshach][%s] Could not find auth info for given credentials"
-  val InvalidPassword = "[Rorshach][%s] Passwords does not match"
-  val UnsupportedHasher = "[Rorshach][%s] Stored hasher ID `%s` isn't contained in the list of supported hasher: %s"
+  val UnknownCredentials = "[Rorschach][%s] Could not find auth info for given credentials"
+  val InvalidPassword = "[Rorschach][%s] Passwords does not match"
+  val UnsupportedHasher = "[Rorschach][%s] Stored hasher ID `%s` isn't contained in the list of supported hasher: %s"
 
   /**
    * The provider constants.

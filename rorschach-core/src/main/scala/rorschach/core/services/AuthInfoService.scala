@@ -1,6 +1,6 @@
 package rorschach.core.services
 
-import rorschach.core.{LoginInfo, AuthInfo}
+import rorschach.core.{ LoginInfo, AuthInfo }
 
 import scala.concurrent.Future
 import scala.reflect.ClassTag

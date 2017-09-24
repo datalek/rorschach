@@ -1,9 +1,8 @@
 package rorschach.core.daos
 
-import rorschach.core.{AuthInfo, LoginInfo}
+import rorschach.core.{ AuthInfo, LoginInfo }
 
 import scala.concurrent.Future
-
 
 /**
  * The DAO to persist the auth info.
@@ -58,5 +57,4 @@ trait AuthInfoDao[T <: AuthInfo] {
    */
   def remove(loginInfo: LoginInfo): Future[Unit]
 }
-
 

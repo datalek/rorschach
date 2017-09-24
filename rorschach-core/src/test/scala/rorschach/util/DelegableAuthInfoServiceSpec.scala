@@ -2,7 +2,7 @@ package rorschach.util
 
 import org.scalamock.specs2.MockContext
 import org.specs2.mutable.Specification
-import rorschach.core.{LoginInfo, AuthInfo}
+import rorschach.core.{ LoginInfo, AuthInfo }
 import rorschach.core.daos.DelegableAuthInfoDao
 import test.util.Common
 
@@ -62,14 +62,13 @@ class DelegableAuthInfoServiceSpec extends Specification with Common {
     "return usign the method remove of the correct dao" >> new Context {
       (dao0.remove _).expects(loginInfo).returns(Future.successful(Some(authInfo0)))
       (dao1.remove _).expects(loginInfo).returns(Future.successful(Some(authInfo1)))
-      await(authInfoService.remove[AuthInfo0](loginInfo)) should be equalTo(Unit)
-      await(authInfoService.remove[AuthInfo1](loginInfo)) should be equalTo(Unit)
+      await(authInfoService.remove[AuthInfo0](loginInfo)) should be equalTo (Unit)
+      await(authInfoService.remove[AuthInfo1](loginInfo)) should be equalTo (Unit)
     }
     "throw an exception when dao isn't found" >> new Context {
       await(authInfoService.remove[WithoutDao](loginInfo)) should throwA[Exception]
     }
   }
-
 
   trait Context extends MockContext {
     val loginInfo = LoginInfo("provider", "this is identificator of user")

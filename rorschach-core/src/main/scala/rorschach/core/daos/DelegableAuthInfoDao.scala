@@ -17,4 +17,3 @@ import scala.reflect.ClassTag
  */
 abstract class DelegableAuthInfoDao[T <: AuthInfo](implicit val classTag: ClassTag[T]) extends AuthInfoDao[T]
 
-

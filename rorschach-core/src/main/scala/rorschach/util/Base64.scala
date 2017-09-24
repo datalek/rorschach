@@ -4,7 +4,7 @@ package rorschach.util
 
 import java.nio.charset.StandardCharsets
 
-import org.apache.commons.codec.binary.{Base64 => JBase64}
+import org.apache.commons.codec.binary.{ Base64 => JBase64 }
 import play.api.libs.json.JsValue
 
 /**

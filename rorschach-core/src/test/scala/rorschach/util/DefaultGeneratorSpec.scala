@@ -11,8 +11,8 @@ class DefaultGeneratorSpec extends Specification {
   "DefaultGenerator" should {
     "generate different values without error" >> {
       val ids = (0 until 1000).map(i => generator.generate)
-      val doubles = Future.sequence(ids).map(_.groupBy(identity).filter{case (v, l) => l.length > 1})
-      doubles.map( _ should be empty).await
+      val doubles = Future.sequence(ids).map(_.groupBy(identity).filter { case (v, l) => l.length > 1 })
+      doubles.map(_ should be empty).await
     }
   }
 

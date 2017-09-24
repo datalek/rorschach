@@ -3,10 +3,10 @@ package rorschach.core.providers
 import org.specs2.mutable.Specification
 import org.scalamock.specs2.MockContext
 import org.specs2.time.NoTimeConversions
-import rorschach.core.{LoginInfo, Credentials}
+import rorschach.core.{ LoginInfo, Credentials }
 import rorschach.core.services.AuthInfoService
-import rorschach.exceptions.{InvalidPasswordException, ConfigurationException, IdentityNotFoundException}
-import rorschach.util.{PasswordInfo, PasswordHasher}
+import rorschach.exceptions.{ InvalidPasswordException, ConfigurationException, IdentityNotFoundException }
+import rorschach.util.{ PasswordInfo, PasswordHasher }
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.reflect.ClassTag
@@ -78,7 +78,6 @@ class CredentialsProviderSpec extends Specification with NoTimeConversions with 
 
       await(provider.authenticate(credentials)) should be equalTo loginInfo
     }
-
 
   }
 

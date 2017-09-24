@@ -3,7 +3,7 @@ package rorschach.util
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import javax.crypto.Cipher
-import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
+import javax.crypto.spec.{ IvParameterSpec, SecretKeySpec }
 import com.typesafe.config.ConfigFactory
 
 trait Crypto {
@@ -13,10 +13,11 @@ trait Crypto {
 
 object Crypto extends DefaultCrypto with Crypto
 
-class DefaultCrypto (
-  algorithm: String = "AES",
-  transformation: String = "AES/CTR/NoPadding",
-  salt: Option[String] = None) extends Crypto {
+class DefaultCrypto(
+    algorithm: String = "AES",
+    transformation: String = "AES/CTR/NoPadding",
+    salt: Option[String] = None
+) extends Crypto {
 
   private def secretKeyToSpec(key: String): SecretKeySpec = {
     val messageDigest: MessageDigest = MessageDigest.getInstance("SHA-256")

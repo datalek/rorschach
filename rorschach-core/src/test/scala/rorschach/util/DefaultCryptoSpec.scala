@@ -5,7 +5,7 @@ import org.specs2.mutable.Specification
 class DefaultCryptoSpec extends Specification {
 
   val textToEncrypt = "&%%ASDIIJPOppokasojdpOWIJD"
-  val key = "hello encryption!!!"//"this is my key"
+  val key = "hello encryption!!!" //"this is my key"
   val crypto = Crypto
 
   "Crypto" should {

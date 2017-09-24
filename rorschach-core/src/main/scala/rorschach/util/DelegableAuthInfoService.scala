@@ -1,10 +1,10 @@
 package rorschach.util
 
-import rorschach.core.daos.{AuthInfoDao, DelegableAuthInfoDao}
+import rorschach.core.daos.{ AuthInfoDao, DelegableAuthInfoDao }
 import rorschach.core.services.AuthInfoService
-import rorschach.core.{LoginInfo, AuthInfo}
+import rorschach.core.{ LoginInfo, AuthInfo }
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ Future, ExecutionContext }
 import scala.reflect.ClassTag
 import DelegableAuthInfoService._
 

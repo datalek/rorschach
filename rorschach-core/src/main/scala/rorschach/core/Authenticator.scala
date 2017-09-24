@@ -4,21 +4,10 @@ import org.joda.time.DateTime
 
 import scala.concurrent.duration.FiniteDuration
 
-
 /**
  * An authenticator tracks an authenticated user.
  */
 trait Authenticator {
-
-  /**
-   * The Type of the generated value an authenticator will be serialized to.
-   */
-  type Value
-
-  /**
-   * The type of the settings an authenticator can handle.
-   */
-  type Settings
 
   /**
    * Gets the linked login info for an identity.
@@ -73,7 +62,7 @@ trait ExpirableAuthenticator extends Authenticator {
    *
    * @return True if the authenticator isn't expired and isn't timed out.
    */
-  override def isValid = !isExpired && !isTimedOut
+  override def isValid: Boolean = !isExpired && !isTimedOut
 
   /**
    * Checks if the authenticator is expired. This is an absolute timeout since the creation of
@@ -81,7 +70,7 @@ trait ExpirableAuthenticator extends Authenticator {
    *
    * @return True if the authenticator is expired, false otherwise.
    */
-  def isExpired = expirationDateTime.isBeforeNow
+  def isExpired: Boolean = expirationDateTime.isBeforeNow
 
   /**
    * Checks if the time elapsed since the last time the authenticator was used, is longer than
@@ -89,5 +78,5 @@ trait ExpirableAuthenticator extends Authenticator {
    *
    * @return True if sliding window expiration is activated and the authenticator is timed out, false otherwise.
    */
-  def isTimedOut = idleTimeout.isDefined && lastUsedDateTime.plusSeconds(idleTimeout.get.toSeconds.toInt).isBeforeNow
+  def isTimedOut: Boolean = idleTimeout.isDefined && lastUsedDateTime.plusSeconds(idleTimeout.get.toSeconds.toInt).isBeforeNow
 }

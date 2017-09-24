@@ -1,6 +1,13 @@
 import sbt._
 
 object Dependencies {
+  val commonResolvers = Seq(
+    Resolver.defaultLocal, Resolver.mavenLocal,
+    "Atlassian Releases" at "https://maven.atlassian.com/public/",
+    "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
+    "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
+  )
+  
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
   val logback = "ch.qos.logback" % "logback-classic" % "1.1.3"
   val playJson = "com.typesafe.play" %% "play-json" % "2.5.5"
