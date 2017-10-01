@@ -1,4 +1,4 @@
-package rorschach.util
+package rorschach.providers.credentials
 
 import BCryptPasswordHasher._
 import org.mindrot.jbcrypt.BCrypt

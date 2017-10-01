@@ -1,10 +1,9 @@
-package rorschach.util
+package rorschach.jwt
 
-import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import javax.crypto.Cipher
 import javax.crypto.spec.{ IvParameterSpec, SecretKeySpec }
-import com.typesafe.config.ConfigFactory
+import rorschach.util.Base64
 
 trait Crypto {
   def encrypt(key: String, value: String): String

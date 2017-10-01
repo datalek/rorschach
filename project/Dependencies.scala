@@ -11,6 +11,7 @@ object Dependencies {
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
   val logback = "ch.qos.logback" % "logback-classic" % "1.1.3"
   val playJson = "com.typesafe.play" %% "play-json" % "2.5.5"
+  val jodaTime = "joda-time" % "joda-time" % "2.9.9"
   val scalamockScalatest = "org.scalamock" %% "scalamock-scalatest-support" % "3.2"
   val scalamockSpec2 = "org.scalamock" %% "scalamock-specs2-support" % "3.2"
 

@@ -1,4 +1,4 @@
-package rorschach.util
+package rorschach.jwt
 
 import org.specs2.mutable.Specification
 

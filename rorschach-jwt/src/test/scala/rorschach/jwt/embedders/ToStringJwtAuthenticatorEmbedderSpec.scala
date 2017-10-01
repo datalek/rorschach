@@ -33,7 +33,7 @@ class ToStringJwtAuthenticatorEmbedderSpec extends Specification with JsonMatche
       val s = settings.copy(encryptKey = None)
       val jwt = serialize(authenticator)
       val json = Base64.decode(jwt.split('.')(1))
-      json must /("sub" -> Base64.encode(Json.toJson(authenticator.loginInfo)))
+      json must /("sub" -> Base64.encode(Json.toJson(authenticator.loginInfo).toString))
     }
 
     "return a JWT with an issuer" in new Context {
@@ -76,6 +76,7 @@ class ToStringJwtAuthenticatorEmbedderSpec extends Specification with JsonMatche
   }
 
   trait Context extends Scope {
+    implicit val loginInfoFormat = JwtAuthenticatorFormat.jsonFormat
     val loginInfo = LoginInfo("provider", "this is identificator of user")
     val authenticator = JwtAuthenticator(
       id = "identificator",

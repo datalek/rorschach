@@ -1,4 +1,4 @@
-package rorschach.util
+package rorschach.providers.credentials
 
 import org.specs2.mutable.Specification
 

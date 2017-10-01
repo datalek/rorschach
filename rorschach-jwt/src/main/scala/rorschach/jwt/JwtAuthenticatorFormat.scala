@@ -16,6 +16,8 @@ import scala.collection.JavaConverters._
 
 object JwtAuthenticatorFormat {
 
+  implicit val jsonFormat = Json.format[LoginInfo]
+
   /**
    * The reserved claims used by the authenticator.
    */
