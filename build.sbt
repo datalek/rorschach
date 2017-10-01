@@ -14,7 +14,7 @@ val projectName = "rorschach"
 lazy val root = Project(id = projectName, base = file("."))
   .settings(sprayRorschachSettings: _*)
   .settings(PublishSettings.skipPublish)
-  .aggregate(rorschachCore, rorschachJwt, /*rorschachSpray, */rorschachAkka)
+  .aggregate(rorschachCore, rorschachJwt, rorschachProviders, /*rorschachSpray, */rorschachAkka)
 
 /* core project, contains main behaviour */
 lazy val rorschachCore = Project(id = s"$projectName-core", base = file(s"$projectName-core"))
@@ -28,6 +28,13 @@ lazy val rorschachJwt = Project(id = s"$projectName-jwt", base = file(s"$project
   .settings(sprayRorschachSettings: _*)
   .settings(
     libraryDependencies ++= Seq(jwt.core, jwt.api, jbcrypt, logback, playJson, scalamockSpec2 % "test")
+  ).dependsOn(rorschachCore)
+
+/* implements providers (oauth, openId, saml, password, ...) */
+lazy val rorschachProviders = Project(id = s"$projectName-providers", base = file(s"$projectName-providers"))
+  .settings(sprayRorschachSettings: _*)
+  .settings(
+    libraryDependencies ++= Seq(scalamockSpec2 % "test")
   ).dependsOn(rorschachCore)
 
 /* this project provide authentication functionality into spray */

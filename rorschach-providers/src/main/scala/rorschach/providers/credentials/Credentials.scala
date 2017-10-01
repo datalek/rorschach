@@ -1,4 +1,4 @@
-package rorschach.core
+package rorschach.providers.credentials
 
 /**
  * Credentials to authenticate with.

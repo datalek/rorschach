@@ -1,12 +1,11 @@
-package rorschach.core.providers
+package rorschach.providers.credentials
 
-import rorschach.core.{ LoginInfo, Credentials, Provider }
-import rorschach.core.services.AuthInfoService
-import rorschach.exceptions.{ IdentityNotFoundException, InvalidPasswordException, ConfigurationException }
-import rorschach.util.{ PasswordInfo, PasswordHasher }
-
-import scala.concurrent.{ Future, ExecutionContext }
+import rorschach.core._
+import rorschach.exceptions._
+import rorschach.util._
+import scala.concurrent._
 import CredentialsProvider._
+import rorschach.core.daos.AuthInfoDao
 
 /**
  * A provider for authenticating with credentials.
@@ -17,17 +16,16 @@ import CredentialsProvider._
  * the application has changed the hashing algorithm, the provider hashes the entered password again with the new
  * algorithm and stores the auth info in the backing store.
  *
- * @param authInfoService The auth info Service.
+ * @param authInfoDao The auth info Dao.
  * @param passwordHasher The default password hasher used by the application.
  * @param passwordHasherList List of password hasher supported by the application.
  * @param executionContext The execution context to handle the asynchronous operations.
  */
-class CredentialsProvider(
-  authInfoService: AuthInfoService,
-  passwordHasher: PasswordHasher,
-  passwordHasherList: Seq[PasswordHasher]
-)(implicit val executionContext: ExecutionContext)
-    extends Provider /*with ExecutionContextProvider*/ {
+case class CredentialsProvider(
+    authInfoDao: AuthInfoDao[PasswordInfo],
+    passwordHasher: PasswordHasher,
+    passwordHasherList: Seq[PasswordHasher]
+)(implicit val executionContext: ExecutionContext) extends Provider[Credentials, LoginInfo] {
 
   /**
    * Gets the provider ID.
@@ -44,11 +42,11 @@ class CredentialsProvider(
    */
   def authenticate(credentials: Credentials): Future[LoginInfo] = {
     loginInfo(credentials).flatMap { loginInfo =>
-      authInfoService.find[PasswordInfo](loginInfo).flatMap {
+      authInfoDao.find(loginInfo).flatMap {
         case Some(authInfo) => passwordHasherList.find(_.id == authInfo.hasher) match {
           case Some(hasher) if hasher.matches(authInfo, credentials.password) =>
             if (hasher != passwordHasher)
-              authInfoService.update(loginInfo, passwordHasher.hash(credentials.password)).map(_ => loginInfo)
+              authInfoDao.update(loginInfo, passwordHasher.hash(credentials.password)).map(_ => loginInfo)
             else
               Future.successful(loginInfo)
           case Some(hasher) => throw new InvalidPasswordException(InvalidPassword.format(id))
@@ -95,3 +93,4 @@ object CredentialsProvider {
    */
   val ID = "credentials"
 }
+
