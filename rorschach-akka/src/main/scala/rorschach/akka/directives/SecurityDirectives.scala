@@ -13,7 +13,7 @@ trait SecurityDirectives {
   /**
    * Provide an authenticator from a loginInfo
    */
-  def create[A <: Authenticator, T](magnet: RorschachAuthMagnet[T], loginInfo: LoginInfo): Directive1[A] = ??? //magnet.create(loginInfo)
+  def create[A <: Authenticator, T](authenticator: AkkaAuthenticationHandler[T], loginInfo: LoginInfo): Directive1[A] = ??? //magnet.create(loginInfo)
 
   /**
    * Given an authenticator embed the serialized value and provide this value on inner route
@@ -26,46 +26,34 @@ trait SecurityDirectives {
    * Discard authenticator if there is one, otherwise do nothing.
    * Examples: if authenticator is a token it will be remove, if is a cookie it wil be discard, etc...
    */
-  def discard[A <: Authenticator, T](magnet: RorschachAuthMagnet[T]): Directive0 = ??? //magnet.discard
+  def discard[A <: Authenticator, T](authenticator: AkkaAuthenticationHandler[T]): Directive0 = ??? //magnet.discard
 
   /**
    * Wraps its inner Route with authentication support.
    * Can be called either with a ``Future[Authentication[T]]`` or ``ContextAuthenticator[T]``.
    */
-  def authenticate[A <: Authenticator, T](magnet: RorschachAuthMagnet[T]): Directive1[T] = magnet.authenticate
+  def authenticate[T](authenticator: AkkaAuthenticationHandler[T]): Directive1[T] = {
+    extract(ctx => authenticator.authenticate(ctx)).flatMap(onSuccess(_)).flatMap {
+      case Right((auth, user, d0)) ⇒ provide(user) & d0
+      case Left(t) ⇒ t match {
+        case e: IdentityNotFoundException => reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenge(scheme = "", realm = "")))
+        case e: InvalidAuthenticatorException => reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenge(scheme = "", realm = "")))
+        case e: AuthenticatorNotFoundException => reject(AuthenticationFailedRejection(CredentialsMissing, HttpChallenge(scheme = "", realm = "")))
+      }
+    }
+  }
 
   /**
    * Wraps its inner Route with optional authentication support.
    * Can be called either with a ``Future[Authentication[T]]`` or ``ContextAuthenticator[T]``.
    */
-  def optionalAuthenticate[A <: Authenticator, T](magnet: RorschachAuthMagnet[T]): Directive1[Option[T]] = magnet.optionalAuthenticate
-
-}
-
-class RorschachAuthMagnet[T](authenticator: AkkaAuthenticationHandler[T])(implicit executor: ExecutionContext) {
-
-  val authenticate: Directive1[T] = extract(authenticator.authenticate).flatMap(onSuccess(_)).flatMap {
-    case Right((auth, user, d0)) ⇒ provide(user) & d0
-    case Left(t) ⇒ t match {
-      case e: IdentityNotFoundException => reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenge(scheme = "", realm = "")))
-      case e: InvalidAuthenticatorException => reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenge(scheme = "", realm = "")))
-      case e: AuthenticatorNotFoundException => reject(AuthenticationFailedRejection(CredentialsMissing, HttpChallenge(scheme = "", realm = "")))
+  def optionalAuthenticate[T](authenticator: AkkaAuthenticationHandler[T]): Directive1[Option[T]] = {
+    def containsCredentialsMissing(in: Seq[Rejection]) = in
+      .collect { case r: AuthenticationFailedRejection => r }
+      .exists(_.cause == CredentialsMissing)
+    authenticate(authenticator).map(Option(_)).recoverPF {
+      case rejections if containsCredentialsMissing(rejections) => provide(None)
     }
   }
 
-  val optionalAuthenticate: Directive1[Option[T]] = extract(authenticator.authenticate).flatMap(onSuccess(_)).flatMap {
-    case Right((auth, user, d0)) ⇒ provide(Option(user)) & d0
-    case Left(t) ⇒ t match {
-      case e: IdentityNotFoundException => reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenge(scheme = "", realm = "")))
-      case e: InvalidAuthenticatorException => reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenge(scheme = "", realm = "")))
-      case e: AuthenticatorNotFoundException => provide(None)
-    }
-  }
-
-}
-
-object RorschachAuthMagnet {
-  implicit def fromRorschachAuthentication[T](authenticator: AkkaAuthenticationHandler[T])(implicit executor: ExecutionContext): RorschachAuthMagnet[T] = {
-    new RorschachAuthMagnet[T](authenticator)
-  }
 }
