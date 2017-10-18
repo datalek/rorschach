@@ -11,6 +11,7 @@ trait AkkaAuthenticationHandler[I]
   extends AuthenticationHandler[RequestContext, I, Directive0]
 
 object AkkaAuthenticationHandler {
+  type Aux[I, A0, O] = AuthenticationHandler[RequestContext, I, O] { type A = A0 }
   def apply[A <: Authenticator, I](
     authenticatorExtractor: AuthenticatorExtractor[RequestContext, A],
     authenticatorService: AuthenticatorService[A],

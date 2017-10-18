@@ -4,29 +4,36 @@ import akka.http.scaladsl.model.headers.HttpChallenge
 import akka.http.scaladsl.server.AuthenticationFailedRejection.{ CredentialsMissing, CredentialsRejected }
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.Directives._
-import rorschach.akka.AkkaAuthenticationHandler
+import rorschach.akka._
 import rorschach.core.{ Authenticator, LoginInfo }
 import rorschach.exceptions._
-import scala.concurrent.ExecutionContext
 
 trait SecurityDirectives {
+
+  protected def containsCredentialsMissing(in: Seq[Rejection]): Boolean = in
+    .collect { case r: AuthenticationFailedRejection => r }
+    .exists(_.cause == CredentialsMissing)
+
   /**
    * Provide an authenticator from a loginInfo
    */
-  def create[A <: Authenticator, T](authenticator: AkkaAuthenticationHandler[T], loginInfo: LoginInfo): Directive1[A] = ??? //magnet.create(loginInfo)
+  //  def create[T](authentication: AkkaAuthenticationHandler[T], loginInfo: LoginInfo): Directive1[authentication.A] =
+  //    ???
 
   /**
    * Given an authenticator embed the serialized value and provide this value on inner route
    * Examples: if authenticator is a token it will embed and provided as string (serialized),
    * if is a cookie it wil be embed and provide as [[akka.http.scaladsl.model.headers.Cookie]]...
    */
-  //def embed[A <: Authenticator, T](magnet: RorschachAuthMagnet[A, T], authenticator: A): Directive1[A#Value] = ??? //magnet.embed(authenticator)
+  //  def embed[A <: Authenticator, O, T](authentication: AkkaAuthenticationHandler.Aux[T, A, O], authenticator: A): O =
+  //    authentication.authenticatorEmbedder(authenticator)
 
   /**
    * Discard authenticator if there is one, otherwise do nothing.
    * Examples: if authenticator is a token it will be remove, if is a cookie it wil be discard, etc...
    */
-  def discard[A <: Authenticator, T](authenticator: AkkaAuthenticationHandler[T]): Directive0 = ??? //magnet.discard
+  //  def discard[A <: Authenticator, T](authenticator: AkkaAuthenticationHandler[T]): Directive0 =
+  //    ???
 
   /**
    * Wraps its inner Route with authentication support.
@@ -48,10 +55,21 @@ trait SecurityDirectives {
    * Can be called either with a ``Future[Authentication[T]]`` or ``ContextAuthenticator[T]``.
    */
   def optionalAuthenticate[T](authenticator: AkkaAuthenticationHandler[T]): Directive1[Option[T]] = {
-    def containsCredentialsMissing(in: Seq[Rejection]) = in
-      .collect { case r: AuthenticationFailedRejection => r }
-      .exists(_.cause == CredentialsMissing)
     authenticate(authenticator).map(Option(_)).recoverPF {
+      case rejections if containsCredentialsMissing(rejections) => provide(None)
+    }
+  }
+
+  def authenticate[T](authenticators: AkkaAuthenticationHandlerChain[T]): Directive1[T] =
+    authenticators match {
+      case Nil => failWith(new IllegalStateException("authenticators can't be empty"))
+      case h :: t => t.foldLeft(authenticate(h)) {
+        case (directive, auth) => directive | authenticate(auth)
+      }
+    }
+
+  def optionalAuthenticate[T](authenticators: AkkaAuthenticationHandlerChain[T]): Directive1[Option[T]] = {
+    authenticate(authenticators).map(Option(_)).recoverPF {
       case rejections if containsCredentialsMissing(rejections) => provide(None)
     }
   }

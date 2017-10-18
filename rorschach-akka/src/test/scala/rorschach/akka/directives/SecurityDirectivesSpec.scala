@@ -7,10 +7,10 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.AuthenticationFailedRejection._
 import akka.http.scaladsl.settings.RoutingSettings
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import org.joda.time.DateTime
+import akka.testkit._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Matchers, WordSpec }
-import rorschach.akka.AkkaAuthenticationHandler
+import rorschach.akka._
 import rorschach.core._
 import rorschach.core.services._
 import rorschach.akka.Directives._
@@ -19,7 +19,6 @@ import rorschach.akka.extractors._
 import rorschach.core.embedders.AuthenticatorEmbedder
 import rorschach.core.extractors.AuthenticatorExtractor
 import scala.concurrent.Future
-import scala.concurrent.duration._
 
 class SecurityDirectivesSpec extends WordSpec with Matchers with MockFactory with ScalatestRouteTest {
 
@@ -98,7 +97,31 @@ class SecurityDirectivesSpec extends WordSpec with Matchers with MockFactory wit
       }
     }
   }
-  "the 'optionalAuthenticate(SprayRorschachAuthenticator)' directive" should {
+  "the 'authenticate(AuthenticationHandlerChain)' directive" should {
+    "reject requests without Authorization header with an AuthenticationFailedRejection" in new Context {
+      Get() ~> {
+        authenticate(authenticators) { user => complete(user.username) }
+      } ~> check { rejection shouldEqual AuthenticationFailedRejection(CredentialsMissing, challenge) }
+    }
+    "handle exception if authenticators list is empty" in new Context {
+      Get() ~> Route.seal {
+        authenticate(emptyAuthenticators) { user => complete(user.username) }
+      } ~> check { status shouldEqual StatusCodes.InternalServerError }
+    }
+    "extract the object representing the user identity created by successful authentication" in new Context {
+      (fromStringAuthenticatorExtractor.apply _).expects(token).returns(Future(Option(auth)))
+      (identityExtractor.apply _).expects(loginInfo).returns(Future.successful(Option(user)))
+      (authenticatorService.touch _).expects(*).returns(Right(auth))
+      (authenticatorService.update _).expects(auth).returns(Future.successful(auth))
+      (toStringAuthenticatorEmbedder.apply _).expects(auth).returns(token)
+      Get().withHeaders(RawHeader(headerName, token)) ~> authenticate(authenticators) { user =>
+        complete(user.username)
+      } ~> check {
+        responseAs[String] shouldEqual loginInfo.providerKey
+      }
+    }
+  }
+  "the 'optionalAuthenticate(AuthenticationHandler)' directive" should {
     "extract None from requests without Authorization header" in new Context {
       Get() ~> {
         optionalAuthenticate(authenticator) { user => complete(user.toString) }
@@ -140,6 +163,30 @@ class SecurityDirectivesSpec extends WordSpec with Matchers with MockFactory wit
       } ~> check { status shouldEqual StatusCodes.InternalServerError }
     }
   }
+  "the 'optionalAuthenticate(AuthenticationHandlerChain)' directive" should {
+    "extract None from requests without Authorization header" in new Context {
+      Get() ~> {
+        optionalAuthenticate(authenticators) { user => complete(user.toString) }
+      } ~> check { responseAs[String] shouldEqual "None" }
+    }
+    "handle exception if authenticators list is empty" in new Context {
+      Get() ~> Route.seal {
+        authenticate(emptyAuthenticators) { user => complete(user.username) }
+      } ~> check { status shouldEqual StatusCodes.InternalServerError }
+    }
+    "properly handle exceptions thrown in its inner route" in new Context {
+      (fromStringAuthenticatorExtractor.apply _).expects(token).returns(Future(Option(auth)))
+      (identityExtractor.apply _).expects(loginInfo).returns(Future.successful(Option(user)))
+      (authenticatorService.touch _).expects(*).returns(Right(auth))
+      (authenticatorService.update _).expects(*).returns(Future.successful(auth))
+      (toStringAuthenticatorEmbedder.apply _).expects(auth).returns(token)
+      Get().withHeaders(RawHeader(headerName, token)) ~> {
+        handleExceptions(ExceptionHandler.default(RoutingSettings.default)) {
+          optionalAuthenticate(authenticators) { _ ⇒ throw new Exception }
+        }
+      } ~> check { status shouldEqual StatusCodes.InternalServerError }
+    }
+  }
 
   case class User(username: String)
   case class FakeAuthenticator(
@@ -177,6 +224,8 @@ class SecurityDirectivesSpec extends WordSpec with Matchers with MockFactory wit
       identityExtractor,
       authenticatorEmbedder
     )
+    val authenticators = authenticator :: authenticator
+    val emptyAuthenticators: AkkaAuthenticationHandlerChain[User] = Nil
   }
 
 }
