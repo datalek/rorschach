@@ -1,6 +1,6 @@
 package rorschach.jwt.embedders
 
-import org.joda.time.DateTime
+import java.time.Instant
 import org.specs2.matcher.JsonMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -18,7 +18,7 @@ class ToStringJwtAuthenticatorEmbedderSpec extends Specification with JsonMatche
     "return a JWT with an expiration time" in new Context {
       val jwt = serialize(authenticator)
       val json = Base64.decode(jwt.split('.').apply(1))
-      json must /("exp" -> (authenticator.expirationDateTime.getMillis / 1000).toInt)
+      json must /("exp" -> (authenticator.expirationDateTime.getEpochSecond).toInt)
     }
 
     "return a JWT with an encrypted subject" in new Context {
@@ -45,7 +45,7 @@ class ToStringJwtAuthenticatorEmbedderSpec extends Specification with JsonMatche
     "return a JWT with an issued-at time" in new Context {
       val jwt = serialize(authenticator)
       val json = Base64.decode(jwt.split('.').apply(1))
-      json must /("iat" -> (authenticator.lastUsedDateTime.getMillis / 1000).toInt)
+      json must /("iat" -> (authenticator.lastUsedDateTime.getEpochSecond).toInt)
     }
 
     "throw an AuthenticatorException if a reserved claim will be overridden" in new Context {
@@ -81,8 +81,8 @@ class ToStringJwtAuthenticatorEmbedderSpec extends Specification with JsonMatche
     val authenticator = JwtAuthenticator(
       id = "identificator",
       loginInfo = loginInfo,
-      lastUsedDateTime = DateTime.now,
-      expirationDateTime = DateTime.now,
+      lastUsedDateTime = Instant.now,
+      expirationDateTime = Instant.now,
       idleTimeout = Some(5.minutes)
     )
     val settings = JwtAuthenticatorSettings(

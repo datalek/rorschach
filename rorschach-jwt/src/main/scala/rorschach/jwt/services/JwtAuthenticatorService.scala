@@ -28,7 +28,7 @@ class JwtAuthenticatorService(
         id = id,
         loginInfo = loginInfo,
         lastUsedDateTime = now,
-        expirationDateTime = now.plus(settings.authenticatorExpiry.toMillis),
+        expirationDateTime = now.plusMillis(settings.authenticatorExpiry.toMillis),
         idleTimeout = settings.authenticatorIdleTimeout
       )
     }.recover {

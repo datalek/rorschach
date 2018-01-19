@@ -1,6 +1,6 @@
 package rorschach.spray.directives
 
-import org.joda.time.DateTime
+import java.time.Instant
 import org.scalamock.specs2.MockContext
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
@@ -101,8 +101,8 @@ class SecurityDirectivesSpec extends Specification with Specs2RouteTest with NoT
     val loginInfo = LoginInfo("providerId", "thisisanemail@email.com")
     val user = User(loginInfo.providerKey)
     val settings = JWTAuthenticatorSettings(headerName = "X-Authentication", issuerClaim = "this is an issuer man!", sharedSecret = "shhhhhhhhhh!!")
-    val token = JWTAuthenticator("id", loginInfo, DateTime.now, DateTime.now.plusHours(1), Some(10.minutes))
-    val invalidBearerToken = JWTAuthenticator("id", loginInfo, DateTime.now.minusHours(2), DateTime.now.minusHours(1), Some(10.minutes))
+    val token = JWTAuthenticator("id", loginInfo, Instant.now, Instant.now.plusHours(1), Some(10.minutes))
+    val invalidBearerToken = JWTAuthenticator("id", loginInfo, Instant.now.minusHours(2), Instant.now.minusHours(1), Some(10.minutes))
     val serialized = JWTAuthenticator.serialize(token)(settings)
     val invalidSerialized = JWTAuthenticator.serialize(invalidBearerToken)(settings)
 

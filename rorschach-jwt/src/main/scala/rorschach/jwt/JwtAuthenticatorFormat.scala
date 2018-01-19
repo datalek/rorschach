@@ -5,7 +5,6 @@ import com.atlassian.jwt.core.writer._
 import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.crypto.MACVerifier
 import com.nimbusds.jwt.JWTClaimsSet
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 import rorschach.core.LoginInfo
 import rorschach.exceptions._
@@ -28,10 +27,10 @@ object JwtAuthenticatorFormat {
     val jwtBuilder = new JsonSmartJwtJsonBuilder()
       .jwtId(authenticator.id)
       .issuer(settings.issuerClaim)
-      .notBefore(authenticator.lastUsedDateTime.toDate.getTime / 1000)
+      .notBefore(authenticator.lastUsedDateTime.getEpochSecond)
       .subject(settings.encryptKey.fold(Base64.encode(subject))(Crypto.encrypt(_, subject)))
-      .issuedAt(authenticator.lastUsedDateTime.toDate.getTime / 1000)
-      .expirationTime(authenticator.expirationDateTime.toDate.getTime / 1000)
+      .issuedAt(authenticator.lastUsedDateTime.getEpochSecond)
+      .expirationTime(authenticator.expirationDateTime.getEpochSecond)
     val containReserved = authenticator.customClaims.exists(_.exists(s => ReservedClaims.contains(s._1)))
     if (containReserved) throw new AuthenticatorException("Found a reserved key")
     authenticator.customClaims.map(this.serializeCustomClaims).foreach(p => p.map { case (k, v) => jwtBuilder.claim(k, v) })
@@ -54,8 +53,8 @@ object JwtAuthenticatorFormat {
         JwtAuthenticator(
           id = c.getJWTID,
           loginInfo = loginInfo,
-          lastUsedDateTime = new DateTime(c.getIssueTime),
-          expirationDateTime = new DateTime(c.getExpirationTime),
+          lastUsedDateTime = c.getIssueTime.toInstant,
+          expirationDateTime = c.getExpirationTime.toInstant,
           idleTimeout = settings.authenticatorIdleTimeout,
           customClaims = if (customClaims.isEmpty) None else Some(customClaims)
         )

@@ -1,6 +1,7 @@
 package rorschach.jwt.extractors
 
-import org.joda.time.DateTime
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import org.specs2.matcher.JsonMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -37,8 +38,8 @@ class FromStringJwtAuthenticatorExtractorSpec extends Specification with JsonMat
       val s = settings.copy(encryptKey = Some("amazing string"))
       val jwt = serialize.copy(settings = s)(authenticator)
       await(deserialize.copy(settings = s)(jwt)) must beSome(authenticator.copy(
-        expirationDateTime = authenticator.expirationDateTime.withMillisOfSecond(0),
-        lastUsedDateTime = authenticator.lastUsedDateTime.withMillisOfSecond(0),
+        expirationDateTime = authenticator.expirationDateTime.truncatedTo(ChronoUnit.SECONDS),
+        lastUsedDateTime = authenticator.lastUsedDateTime.truncatedTo(ChronoUnit.SECONDS),
         idleTimeout = s.authenticatorIdleTimeout
       ))
     }
@@ -47,8 +48,8 @@ class FromStringJwtAuthenticatorExtractorSpec extends Specification with JsonMat
       val s = settings.copy(encryptKey = None)
       val jwt = serialize.copy(settings = s)(authenticator)
       await(deserialize(jwt)) must beSome(authenticator.copy(
-        expirationDateTime = authenticator.expirationDateTime.withMillisOfSecond(0),
-        lastUsedDateTime = authenticator.lastUsedDateTime.withMillisOfSecond(0),
+        expirationDateTime = authenticator.expirationDateTime.truncatedTo(ChronoUnit.SECONDS),
+        lastUsedDateTime = authenticator.lastUsedDateTime.truncatedTo(ChronoUnit.SECONDS),
         idleTimeout = s.authenticatorIdleTimeout
       ))
     }
@@ -70,8 +71,8 @@ class FromStringJwtAuthenticatorExtractorSpec extends Specification with JsonMat
     val authenticator = JwtAuthenticator(
       id = "identificator",
       loginInfo = loginInfo,
-      lastUsedDateTime = DateTime.now,
-      expirationDateTime = DateTime.now,
+      lastUsedDateTime = Instant.now,
+      expirationDateTime = Instant.now,
       idleTimeout = Some(5.minutes)
     )
     val settings = JwtAuthenticatorSettings(

@@ -1,7 +1,7 @@
 package rorschach.jwt
 
+import java.time.Instant
 import rorschach.core._
-import org.joda.time.DateTime
 import scala.concurrent.duration.FiniteDuration
 
 /**
@@ -26,8 +26,8 @@ import scala.concurrent.duration.FiniteDuration
 case class JwtAuthenticator(
   id: String,
   loginInfo: LoginInfo,
-  lastUsedDateTime: DateTime,
-  expirationDateTime: DateTime,
+  lastUsedDateTime: Instant,
+  expirationDateTime: Instant,
   idleTimeout: Option[FiniteDuration],
   customClaims: Option[Map[String, Any]] = None
 ) extends StorableAuthenticator with ExpirableAuthenticator

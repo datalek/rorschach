@@ -20,7 +20,7 @@ lazy val root = Project(id = projectName, base = file("."))
 lazy val rorschachCore = Project(id = s"$projectName-core", base = file(s"$projectName-core"))
   .settings(sprayRorschachSettings: _*)
   .settings(
-    libraryDependencies ++= Seq(logback, jodaTime, scalamockSpec2 % "test")
+    libraryDependencies ++= Seq(logback, scalamockSpec2 % "test")
   )
 
 /* implements jwt authenticator */

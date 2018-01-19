@@ -5,7 +5,7 @@ import rorschach.util._
 import rorschach.core._
 import rorschach.core.daos._
 import rorschach.exceptions._
-import org.joda.time.DateTime
+import java.time.Instant
 import org.scalamock.specs2.MockContext
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
@@ -17,12 +17,12 @@ class JwtAuthenticatorServiceSpec extends Specification with NoTimeConversions {
 
   "the create method" should {
     "return authenticator with generated id" >> new Context {
-      val (id, now) = ("random", DateTime.now)
+      val (id, now) = ("random", Instant.now)
       (idGenerator.generate _).expects().returns(Future.successful(id))
       (clock.now _).expects().returns(now)
       val result = await(authenticatorService.create(loginInfo))
       result.id must be equalTo id
-      result.expirationDateTime must be equalTo now.plusMillis(settings.authenticatorExpiry.toMillis.toInt)
+      result.expirationDateTime must be equalTo now.plusMillis(settings.authenticatorExpiry.toMillis)
       result.lastUsedDateTime must be equalTo now
       result.idleTimeout must be equalTo settings.authenticatorIdleTimeout
       result.loginInfo must be equalTo loginInfo
@@ -59,7 +59,7 @@ class JwtAuthenticatorServiceSpec extends Specification with NoTimeConversions {
 
   "the thouch method" should {
     "return authenticator touched" >> new Context {
-      val now = DateTime.now
+      val now = Instant.now
       (clock.now _).expects().returns(now)
       authenticatorService.touch(authenticator) should beRight[JwtAuthenticator].like {
         case a => a.lastUsedDateTime must be equalTo now
@@ -87,7 +87,7 @@ class JwtAuthenticatorServiceSpec extends Specification with NoTimeConversions {
 
   "the renew method" should {
     "return authenticator with generated id" >> new Context {
-      val (id, now) = ("random", DateTime.now)
+      val (id, now) = ("random", Instant.now)
       (dao.remove _).expects(authenticator.id).returns(Future.successful(authenticator))
       (idGenerator.generate _).expects().returns(Future.successful(id))
       (clock.now _).expects().returns(now)
@@ -96,7 +96,7 @@ class JwtAuthenticatorServiceSpec extends Specification with NoTimeConversions {
       result.lastUsedDateTime must be equalTo now
     }
     "return authenticator with generated id withoud storing it to store if no dao is set" >> new Context {
-      val (id, now) = ("random", DateTime.now)
+      val (id, now) = ("random", Instant.now)
       (idGenerator.generate _).expects().returns(Future.successful(id))
       (clock.now _).expects().returns(now)
       val result = await(authenticatorServiceWithoutDao.renew(authenticator))
@@ -114,8 +114,8 @@ class JwtAuthenticatorServiceSpec extends Specification with NoTimeConversions {
     val authenticator = JwtAuthenticator(
       id = "identificator",
       loginInfo = loginInfo,
-      lastUsedDateTime = DateTime.now,
-      expirationDateTime = DateTime.now,
+      lastUsedDateTime = Instant.now,
+      expirationDateTime = Instant.now,
       idleTimeout = Some(5.minutes)
     )
     val settings = JwtAuthenticatorSettings(

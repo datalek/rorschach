@@ -1,7 +1,6 @@
 package rorschach.core
 
-import org.joda.time.DateTime
-
+import java.time.Instant
 import scala.concurrent.duration.FiniteDuration
 
 /**
@@ -45,12 +44,12 @@ trait ExpirableAuthenticator extends Authenticator {
   /**
    * The last used date/time.
    */
-  val lastUsedDateTime: DateTime
+  val lastUsedDateTime: Instant
 
   /**
    * The expiration date/time.
    */
-  val expirationDateTime: DateTime
+  val expirationDateTime: Instant
 
   /**
    * The duration an authenticator can be idle before it timed out.
@@ -70,7 +69,7 @@ trait ExpirableAuthenticator extends Authenticator {
    *
    * @return True if the authenticator is expired, false otherwise.
    */
-  def isExpired: Boolean = expirationDateTime.isBeforeNow
+  def isExpired: Boolean = expirationDateTime.isBefore(Instant.now())
 
   /**
    * Checks if the time elapsed since the last time the authenticator was used, is longer than
@@ -78,5 +77,5 @@ trait ExpirableAuthenticator extends Authenticator {
    *
    * @return True if sliding window expiration is activated and the authenticator is timed out, false otherwise.
    */
-  def isTimedOut: Boolean = idleTimeout.isDefined && lastUsedDateTime.plusSeconds(idleTimeout.get.toSeconds.toInt).isBeforeNow
+  def isTimedOut: Boolean = idleTimeout.isDefined && lastUsedDateTime.plusSeconds(idleTimeout.get.toSeconds.toInt).isBefore(Instant.now())
 }
