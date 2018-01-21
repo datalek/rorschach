@@ -22,37 +22,29 @@ import scala.concurrent.Future
 
 class SecurityDirectivesSpec extends WordSpec with Matchers with MockFactory with ScalatestRouteTest {
 
-  "the 'create(SprayRorschachAuthenticator, loginInfo)' directive" should {
-    //    "create a valid authenticator" in new Context {
-    //      //(idGenerator.generate _).expects().returns(Future.successful(token.id))
-    //      //(dao.add _).expects(*).returns(Future.successful(token))
-    //      Get() ~> create(authenticator, loginInfo) { auth =>
-    //        embed(authenticator, auth) { serialized => complete("you are in!") }
-    //      } ~> check {
-    //        // TODO: check the serialized value
-    //        header(headerName) !== None //Some(RawHeader(headerName, serialized))
-    //      }
-    //    }
-  }
-  // TODO: enable this test
-  //  "the 'discard(SprayRorschachAuthenticator)' directive" should {
-  //    "unembed an authenticator and remove from store" in new Context {
-  //      //(dao.find _).expects(token.id).JwtAuthenticatorServiceSpecreturns(Future.successful(Option(token)))
-  //      //(dao.remove _).expects(token.id).returns(Future.successful(token))
-  //      Get().withHeaders(RawHeader(headerName, token)) ~> discard(authenticator) {
-  //        complete("logout done")
-  //      } ~> check {
-  //        header(headerName) shouldEqual None
-  //      }
-  //    }
-  //    "unembed an authenticator and doesn't remove from store" in new Context {
-  //      Get().withHeaders(RawHeader(headerName, token)) ~> discard(authenticatorWithoutStore) {
-  //        complete("logout done")
-  //      } ~> check {
-  //        header(headerName) shouldEqual None
-  //      }
-  //    }
-  //  }
+//  "the 'create(SprayRorschachAuthenticator, loginInfo)' directive" should {
+//    "create a valid authenticator" in new Context {
+//      //(idGenerator.generate _).expects().returns(Future.successful(token.id))
+//      //(dao.add _).expects(*).returns(Future.successful(token))
+//      Get() ~> create(authenticator, loginInfo) { auth =>
+//        embed(authenticator, auth) { serialized => complete("you are in!") }
+//      } ~> check {
+//        // TODO: check the serialized value
+//        header(headerName) !== None //Some(RawHeader(headerName, serialized))
+//      }
+//    }
+//  }
+//  "the 'discard(SprayRorschachAuthenticator)' directive" should {
+//    "unembed an authenticator and remove from store" in new Context {
+//      (fromStringAuthenticatorExtractor.apply _).expects(token).returns(Future(Option(auth)))
+//      (authenticatorService.remove _).expects(*).returns(Future.successful(auth))
+//      Get().withHeaders(RawHeader(headerName, token)) ~> discard(authenticator) {
+//        complete("logout done")
+//      } ~> check {
+//        header(headerName) shouldEqual None
+//      }
+//    }
+//  }
   "the 'authenticate(AuthenticationHandler)' directive" should {
     "reject requests without Authorization header with an AuthenticationFailedRejection" in new Context {
       Get() ~> {
