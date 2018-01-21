@@ -48,5 +48,5 @@ lazy val rorschachSpray = Project(id = s"$projectName-spray", base = file(s"$pro
 lazy val rorschachAkka = Project(id = s"$projectName-akka", base = file(s"$projectName-akka"))
   .settings(sprayRorschachSettings: _*)
   .settings(
-    libraryDependencies ++= Seq(akka.http % "provided", akka.httpTestkit % "test", scalamockScalatest % "test")
+    libraryDependencies ++= Seq(akka.http % "provided", scalaXml % "test", akka.httpTestkit % "test", scalamockScalatest % "test")
   ).dependsOn(rorschachCore)
