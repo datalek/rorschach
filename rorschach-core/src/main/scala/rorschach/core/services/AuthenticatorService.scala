@@ -18,7 +18,7 @@
  */
 package rorschach.core.services
 
-import rorschach.core.{LoginInfo, Authenticator}
+import rorschach.core.{ LoginInfo, Authenticator }
 import scala.concurrent.Future
 
 /**
@@ -88,19 +88,4 @@ trait AuthenticatorService[T <: Authenticator] {
    */
   def remove(authenticator: T): Future[T]
 
-  /**
-    * Serialize authentication to allow to embed it for transport
-    *
-    * @param authenticator The authentication to serialize
-    * @return The value of authentication serialized
-    */
-  def serialize(authenticator: T): Future[T#Value]
-
-  /**
-    * Deserialize authentication, this can involve in a read on store
-    *
-    * @param value The value of authentication serialized
-    * @return The authenticator
-    */
-  def deserialize(value: T#Value): Future[Option[T]]
 }
