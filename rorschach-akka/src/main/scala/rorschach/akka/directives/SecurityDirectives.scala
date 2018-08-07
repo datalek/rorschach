@@ -17,27 +17,27 @@ trait SecurityDirectives {
   /**
    * Provide an authenticator from a loginInfo and embed it into response
    */
-//    def create[T](authentication: AkkaAuthenticationHandler[T], loginInfo: LoginInfo): Directive1[authentication.A] =
-//      onSuccess(authentication.authenticatorService.create(loginInfo))
+  //    def create[T](authentication: AkkaAuthenticationHandler[T], loginInfo: LoginInfo): Directive1[authentication.A] =
+  //      onSuccess(authentication.authenticatorService.create(loginInfo))
 
   /**
    * Given an authenticator embed the serialized value and provide this value on inner route
    * Examples: if authenticator is a token it will embed and provided as string (serialized),
    * if is a cookie it wil be embed and provide as [[akka.http.scaladsl.model.headers.Cookie]]...
    */
-//    def embed[A <: Authenticator, O, T](authentication: AkkaAuthenticationHandler.Aux[T, A, O], authenticator: A): O = {
-//      authentication.authenticatorEmbedder(authenticator)
-//    }
+  //    def embed[A <: Authenticator, O, T](authentication: AkkaAuthenticationHandler.Aux[T, A, O], authenticator: A): O = {
+  //      authentication.authenticatorEmbedder(authenticator)
+  //    }
 
   /**
    * Discard authenticator if there is one, otherwise do nothing.
    * Examples: if authenticator is a token it will be remove, if is a cookie it wil be discard, etc...
    */
-//    def discard[A <: Authenticator, T](authenticator: AkkaAuthenticationHandler[T]): Directive0 =
-//      extract(ctx => authenticator.authenticatorExtractor(ctx)).flatMap(onSuccess(_)).flatMap {
-//        case Some(a) => onSuccess(authenticator.authenticatorService.remove(a)).flatMap(_ => pass)
-//        case None => pass
-//      }
+  //    def discard[A <: Authenticator, T](authenticator: AkkaAuthenticationHandler[T]): Directive0 =
+  //      extract(ctx => authenticator.authenticatorExtractor(ctx)).flatMap(onSuccess(_)).flatMap {
+  //        case Some(a) => onSuccess(authenticator.authenticatorService.remove(a)).flatMap(_ => pass)
+  //        case None => pass
+  //      }
 
   /**
    * Wraps its inner Route with authentication support.

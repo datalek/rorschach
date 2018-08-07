@@ -48,7 +48,7 @@ object JwtAuthenticatorFormat {
     }.flatMap { c =>
       val subject = settings.encryptKey.fold(Base64.decode(c.getSubject))(Crypto.decrypt(_, c.getSubject))
       unserializeLoginInfo(subject).map { loginInfo =>
-        val filteredClaims = c.getAllClaims.toMap.filterNot { case (k, v) => ReservedClaims.contains(k) || v == null }
+        val filteredClaims = c.getClaims.toMap.filterNot { case (k, v) => ReservedClaims.contains(k) || v == null }
         val customClaims = this.unserializeCustomClaims(filteredClaims)
         JwtAuthenticator(
           id = c.getJWTID,

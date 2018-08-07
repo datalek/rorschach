@@ -22,9 +22,9 @@ import rorschach.core.daos.AuthInfoDao
  * @param executionContext The execution context to handle the asynchronous operations.
  */
 case class CredentialsProvider(
-    authInfoDao: AuthInfoDao[PasswordInfo],
-    passwordHasher: PasswordHasher,
-    passwordHasherList: Seq[PasswordHasher]
+  authInfoDao: AuthInfoDao[PasswordInfo],
+  passwordHasher: PasswordHasher,
+  passwordHasherList: Seq[PasswordHasher]
 )(implicit val executionContext: ExecutionContext) extends Provider[Credentials, LoginInfo] {
 
   /**

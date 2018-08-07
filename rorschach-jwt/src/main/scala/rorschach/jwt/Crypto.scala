@@ -13,9 +13,9 @@ trait Crypto {
 object Crypto extends DefaultCrypto with Crypto
 
 class DefaultCrypto(
-    algorithm: String = "AES",
-    transformation: String = "AES/CTR/NoPadding",
-    salt: Option[String] = None
+  algorithm: String = "AES",
+  transformation: String = "AES/CTR/NoPadding",
+  salt: Option[String] = None
 ) extends Crypto {
 
   private def secretKeyToSpec(key: String): SecretKeySpec = {

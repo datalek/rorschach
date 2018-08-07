@@ -21,10 +21,10 @@ object AkkaAuthenticationHandler {
     AkkaAuthenticationHandlerImpl(authenticatorExtractor, authenticatorService, identityExtractor, authenticatorEmbedder)(ec)
 
   case class AkkaAuthenticationHandlerImpl[A0 <: Authenticator, I](
-      authenticatorExtractor: AuthenticatorExtractor[RequestContext, A0],
-      authenticatorService: AuthenticatorService[A0],
-      identityExtractor: IdentityRetriever[LoginInfo, I],
-      authenticatorEmbedder: AuthenticatorEmbedder[A0, Directive0]
+    authenticatorExtractor: AuthenticatorExtractor[RequestContext, A0],
+    authenticatorService: AuthenticatorService[A0],
+    identityExtractor: IdentityRetriever[LoginInfo, I],
+    authenticatorEmbedder: AuthenticatorEmbedder[A0, Directive0]
   )(implicit val ec: ExecutionContext) extends AkkaAuthenticationHandler[I] {
     type A = A0
   }

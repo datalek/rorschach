@@ -1,7 +1,14 @@
 import sbt.Keys._
 import sbt._
 
-object PublishSettings {
+object ProjectSettings {
+  import com.typesafe.sbt.SbtScalariform.autoImport._
+  import scalariform.formatter.preferences._
+
+  val common = Seq(
+    scalariformPreferences := scalariformPreferences.value
+      .setPreference(DanglingCloseParenthesis, Force)
+  )
 
   private val pom = {
     <scm>
@@ -20,10 +27,18 @@ object PublishSettings {
   val skipPublish = Seq(Keys.publish := {}, publishArtifact := false)
 
   private val snapshot = Seq(
-    publishTo := {if(isSnapshot.value) Some("snapshots" at "http://oss.jfrog.org/artifactory/oss-snapshot-local") else publishTo.value},
+    publishTo := {
+      val default = publishTo.value
+      if(isSnapshot.value) Some("snapshots" at "http://oss.jfrog.org/artifactory/oss-snapshot-local")
+      else default
+    },
     bintray.BintrayKeys.bintrayReleaseOnPublish := !isSnapshot.value,
     // Only setting the credentials file if it exists (#52)
-    credentials := {if (isSnapshot.value) List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_)) else credentials.value}
+    credentials := {
+      val default = credentials.value
+      if (isSnapshot.value) List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_))
+      else default
+    }
   )
   val publish = bintray.BintrayPlugin.bintrayPublishSettings ++ snapshot ++ Seq(
     bintray.BintrayKeys.bintrayPackage := "rorschach",
