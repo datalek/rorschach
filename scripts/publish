@@ -4,5 +4,5 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; th
   echo "*************************************"
   echo "            Publishing               "
   echo "*************************************"
-  sbt publish
+  sbt +publish
 fi

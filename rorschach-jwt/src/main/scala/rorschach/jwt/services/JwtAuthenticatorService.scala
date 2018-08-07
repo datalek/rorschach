@@ -9,10 +9,10 @@ import rorschach.core.services._
 import scala.concurrent._
 
 class JwtAuthenticatorService(
-    idGenerator: IdGenerator,
-    settings: JwtAuthenticatorSettings,
-    dao: Option[AuthenticatorDao[JwtAuthenticator]],
-    clock: Clock = Clock
+  idGenerator: IdGenerator,
+  settings: JwtAuthenticatorSettings,
+  dao: Option[AuthenticatorDao[JwtAuthenticator]],
+  clock: Clock = Clock
 )(implicit val ec: ExecutionContext) extends AuthenticatorService[JwtAuthenticator] {
 
   /**
