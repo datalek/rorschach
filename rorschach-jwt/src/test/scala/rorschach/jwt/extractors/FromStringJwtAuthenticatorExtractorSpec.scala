@@ -79,7 +79,7 @@ class FromStringJwtAuthenticatorExtractorSpec extends Specification with JsonMat
       issuerClaim = "this is my issuer claim",
       authenticatorIdleTimeout = Some(1.minute),
       authenticatorExpiry = 1.hour,
-      sharedSecret = "this is my very secret key"
+      sharedSecret = "this-is-my-very-secret-key-yep-man-yep"
     )
     lazy val customClaims = Map(
       "boolean" -> true,
