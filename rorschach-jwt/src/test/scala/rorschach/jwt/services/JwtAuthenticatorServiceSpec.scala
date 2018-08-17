@@ -110,6 +110,7 @@ class JwtAuthenticatorServiceSpec extends Specification with NoTimeConversions {
   }
 
   trait Context extends MockContext with Common {
+    import scala.concurrent.ExecutionContext.Implicits._
     val loginInfo = LoginInfo("provider", "this is identificator of user")
     val authenticator = JwtAuthenticator(
       id = "identificator",

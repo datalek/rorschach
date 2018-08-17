@@ -28,7 +28,7 @@ lazy val rorschachCore = Project(id = s"$projectName-core", base = file(s"$proje
 lazy val rorschachJwt = Project(id = s"$projectName-jwt", base = file(s"$projectName-jwt"))
   .settings(sprayRorschachSettings: _*)
   .settings(
-    libraryDependencies ++= Seq(jwt.core, jwt.api, logback, playJson, Scalamock.spec2 % Test)
+    libraryDependencies ++= Seq(jwt.core, jwt.api, logback, playJson, Scalamock.spec2 % Test, Specs2.matcherExtra % Test)
   ).dependsOn(rorschachCore)
 
 /* implements providers (oauth, openId, saml, password, ...) */

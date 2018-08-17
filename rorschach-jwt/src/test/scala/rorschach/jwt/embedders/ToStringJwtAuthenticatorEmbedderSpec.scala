@@ -12,7 +12,7 @@ import rorschach.jwt._
 import rorschach.util._
 import scala.concurrent.duration._
 
-class ToStringJwtAuthenticatorEmbedderSpec extends Specification with JsonMatchers with NoTimeConversions {
+class ToStringJwtAuthenticatorEmbedderSpec extends Specification with JsonMatchers {
 
   "The `serialize` method of the authenticator" should {
     "return a JWT with an expiration time" in new Context {

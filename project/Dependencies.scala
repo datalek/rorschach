@@ -13,6 +13,11 @@ object Dependencies {
   val playJson = "com.typesafe.play" %% "play-json" % "2.6.9"
   val scalaXml = "org.scala-lang.modules" %% "scala-xml" % "1.1.0"
 
+  object Specs2 {
+    val version = "3.8.6"
+    val matcherExtra = "org.specs2" %% "specs2-matcher-extra" % version
+  }
+
   object Scalamock {
     val version = "3.6.0"
     val scalatest = "org.scalamock" %% "scalamock-scalatest-support" % version
